@@ -46,8 +46,8 @@ type DataLayer interface {
 
 type HandlerLayer interface {
 	Register(c *gin.Context)
-//	Login(c *gin.Context)
-//	Refresh(c *gin.Context)
+	Login(c *gin.Context)
+	Refresh(c *gin.Context)
 }
 
 //port for auth layer
