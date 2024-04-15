@@ -2,10 +2,13 @@ package data
 
 // database or mock implemenation
 import (
+	"crypto/sha256"
 	"database/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
 	"github.com/lib/pq"
+
 	//"github.com/yobadagne/user_registration/auth"
 	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 	"github.com/yobadagne/user_registration/model"
@@ -96,15 +99,18 @@ func (d *Datalayer) GetPasswordForLogin(usertolog model.User, c *gin.Context) (s
 }
 
 func (d *Datalayer) SaveNewRefreshToken(c *gin.Context, refreshtoken, username string) error {
-	refreshtoken, err := d.auth.GenerateHashPassword(c,refreshtoken)
-	if err != nil {
-		return err
-	}
+
+	hasher := sha256.New()
+	hasher.Write([]byte(refreshtoken))
+	hashedToken := hasher.Sum(nil)
+	hashedTokenHex :=fmt.Sprintf("%x", hashedToken) 
+	
+	
 	args := db.SaveNewRefreshTokenParams{
 		Username:     username,
-		RefreshToken: refreshtoken,
+		RefreshToken: hashedTokenHex,
 	}
-	_, err = d.q.SaveNewRefreshToken(c, args)
+	_, err := d.q.SaveNewRefreshToken(c, args)
 	if err != nil {
 		// check for constarint violation
 		if pqErr, ok := err.(*pq.Error); ok {
@@ -126,8 +132,8 @@ func (d *Datalayer) SaveNewRefreshToken(c *gin.Context, refreshtoken, username s
 	}
 	return nil
 }
-func (d *Datalayer) DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) error {
-	err := d.q.DeleteUsedRefreshToken(c, refreshtoken)
+func (d *Datalayer) DeleteUsedRefreshToken(c *gin.Context, username string) error {
+	err := d.q.DeleteUsedRefreshToken(c, username)
 	if err != nil {
 		err = errorx.Decorate(err, "Can not delete refresh token")
 		util.Logger.Error("Can not delete refresh token", zap.Error(err))
@@ -136,8 +142,8 @@ func (d *Datalayer) DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) 
 	}
 	return nil
 }
-func (d *Datalayer) GetRefreshToken(c *gin.Context, refreshtoken string) (string, error) {
-	refresh_token, err := d.q.GetRefreshToken(c, refreshtoken)
+func (d *Datalayer) GetRefreshToken(c *gin.Context, username string) (string, error) {
+	refresh_token, err := d.q.GetRefreshToken(c, username)
 	if err != nil {
 		err = errorx.Decorate(err, "Can not fetch refresh token")
 		util.Logger.Error("Can not fetch refresh token", zap.Error(err))
