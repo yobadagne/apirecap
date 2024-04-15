@@ -38,7 +38,7 @@ func (t TokenLayer) CreateToken(c *gin.Context, username string, duration time.D
 
 func (t TokenLayer) ValidateToken(c *gin.Context, key string) (*model.Claims, string, error) {
 	authorization := c.GetHeader("Authorization")
-	if authorization == "" {
+	if authorization == " " {
 		util.Logger.Error("Invalid authorization header")
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return nil, " ", errorx.IllegalState.New("Invalid authorization header")
@@ -56,15 +56,15 @@ func (t TokenLayer) ValidateToken(c *gin.Context, key string) (*model.Claims, st
 		return []byte(key), nil
 	})
 	if err != nil {
-		err = errorx.Decorate(err,"Invalid token" )
+		err = errorx.Decorate(err,"Invalid token when parsing" )
 		util.Logger.Error("Invalid token", zap.Error(err))
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return nil, " ", err
 	}
 	if !token.Valid {
-		util.Logger.Error("Invalid token")
+		util.Logger.Error("Invalid token when  validating")
 		c.Set(model.Error_type,model.UNAUTHORIZED)
-		return nil, " ", errorx.IllegalState.New("Invalid token")
+		return nil, " ", errorx.IllegalState.New("Invalid token ")
 	}
 	return Claims, fields[1], nil
 }

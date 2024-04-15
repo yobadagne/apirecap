@@ -1,8 +1,8 @@
 package service
 
-
 import (
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/yobadagne/user_registration/auth"
 	"github.com/yobadagne/user_registration/data"
@@ -10,7 +10,6 @@ import (
 	"github.com/yobadagne/user_registration/token"
 	"github.com/yobadagne/user_registration/util"
 	"github.com/yobadagne/user_registration/val"
-	
 )
 
 var NewAuthLayer = auth.NewAuthLayer()
@@ -44,7 +43,7 @@ func (s ServiceLayer) GernerateAccessAndRefreshToken(c *gin.Context, username st
 	if err != nil {
 		return "", "", err
 	}
-	refresh_token, err = s.tokenlayer.CreateToken(c, username, 30*24*time.Hour, config.Access_key)
+	refresh_token, err = s.tokenlayer.CreateToken(c, username, 30*24*time.Hour, config.Refersh_key)
 	if err != nil {
 		return "", "", err
 	}
@@ -58,9 +57,8 @@ func (s ServiceLayer) ValidateToken(c *gin.Context) (*model.Claims, string, erro
 	if err != nil {
 		return nil, " ", err
 	}
-	claims := &model.Claims{}
-	refresh_token := " "
-	claims, refresh_token, err = s.tokenlayer.ValidateToken(c, config.Refersh_key)
+
+	claims, refresh_token, err := s.tokenlayer.ValidateToken(c, config.Refersh_key)
 	if err != nil {
 		return nil, "", err
 	}
@@ -141,9 +139,9 @@ func (s ServiceLayer) Refresh (c *gin.Context) error{
 		return err
 	}
 	// delete token from database
-	if err := s.datalayer.DeleteUsedRefreshToken(c,refresh_token); err!= nil{
-		return err
-	}
+	// if err := s.datalayer.DeleteUsedRefreshToken(c,refresh_token); err!= nil{
+	// 	return err
+	// }
 	// now generate new tokens
 	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c,claims.Username)
 	if err != nil {

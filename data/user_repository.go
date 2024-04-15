@@ -139,7 +139,7 @@ func (d *Datalayer) DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) 
 func (d *Datalayer) GetRefreshToken(c *gin.Context, refreshtoken string) (string, error) {
 	refresh_token, err := d.q.GetRefreshToken(c, refreshtoken)
 	if err != nil {
-		err = errorx.Decorate(err, "Can not gfetch refresh token")
+		err = errorx.Decorate(err, "Can not fetch refresh token")
 		util.Logger.Error("Can not fetch refresh token", zap.Error(err))
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return "", err
