@@ -1,14 +1,15 @@
 package auth
 
 import (
+	"crypto/sha256"
+
+
 	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
-	"crypto/sha256"
-	
 )
 
 // adapter for auth layer
@@ -21,11 +22,12 @@ func NewAuthLayer() model.AuthLayer {
 
 func (a AuthLayer) GenerateHashPassword(c *gin.Context,password string) (string, error) {
 	if len(password) > 72 {
-			// Hash the refresh token with SHA-256
+			// Pre Hash the refresh token with SHA-256 so that we can use bcrypt
 		sha256Hash := sha256.Sum256([]byte(password))
 
 		// Convert the SHA-256 hash to a string
 		password = string(sha256Hash[:])
+		
     }
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
@@ -45,7 +47,7 @@ func (a AuthLayer) CompareHashPassword(c *gin.Context,password, hash string) err
 	if err != nil {
 		// change error into errorx format
 		err = errorx.Decorate(err, "Can not compare password")
-		util.Logger.Error("Error while comparing passoword", zap.Error(err))
+		util.Logger.Error("Error while comparing password", zap.Error(err))
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return err
 	}

@@ -1,16 +1,19 @@
 package service
 
-
 import (
+	"crypto/sha256"
+	"fmt"
 	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/auth"
 	"github.com/yobadagne/user_registration/data"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/token"
 	"github.com/yobadagne/user_registration/util"
 	"github.com/yobadagne/user_registration/val"
-	
+	"go.uber.org/zap"
 )
 
 var NewAuthLayer = auth.NewAuthLayer()
@@ -44,7 +47,7 @@ func (s ServiceLayer) GernerateAccessAndRefreshToken(c *gin.Context, username st
 	if err != nil {
 		return "", "", err
 	}
-	refresh_token, err = s.tokenlayer.CreateToken(c, username, 30*24*time.Hour, config.Access_key)
+	refresh_token, err = s.tokenlayer.CreateToken(c, username, 30*24*time.Hour, config.Refersh_key)
 	if err != nil {
 		return "", "", err
 	}
@@ -53,24 +56,35 @@ func (s ServiceLayer) GernerateAccessAndRefreshToken(c *gin.Context, username st
 
 //valiadte token
 
-func (s ServiceLayer) ValidateToken(c *gin.Context) (*model.Claims, string, error) {
+func (s ServiceLayer) ValidateToken(c *gin.Context) (*model.Claims, error) {
 	config, err := util.LoadConfig(c,".")
 	if err != nil {
-		return nil, " ", err
+		return nil, err
 	}
-	claims := &model.Claims{}
-	refresh_token := " "
-	claims, refresh_token, err = s.tokenlayer.ValidateToken(c, config.Refersh_key)
+
+	claims, refresh_token, err := s.tokenlayer.ValidateToken(c, config.Refersh_key)
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	//check for validation of refresh token session
-	refresh_token,err = s.datalayer.GetRefreshToken(c,refresh_token)
+	refresh_tokenfromDB,err := s.datalayer.GetRefreshToken(c,claims.Username)
 	if err!= nil{
-		return nil, "", err
+		return nil, err
 	}
-	return claims, refresh_token, nil
+	// now compare the two refresh tokens
+	hasher := sha256.New()
+	hasher.Write([]byte(refresh_token))
+	hashedToken := hasher.Sum(nil)
+	hashedTokenHex :=fmt.Sprintf("%x", hashedToken)
+
+	if hashedTokenHex != refresh_tokenfromDB{
+			err:= errorx.Decorate(errorx.IllegalState.New("refresh token doesnot match"),"refresh token does not match")
+			util.Logger.Error("refresh token doesnot match",zap.Error(err))
+			return nil, err
+	}
+	
+	return claims,nil
 }
 
 // port for database communication
@@ -136,12 +150,12 @@ func (s ServiceLayer) Login(usertolog model.User, c *gin.Context) error {
 //for refresh
 
 func (s ServiceLayer) Refresh (c *gin.Context) error{
-	claims, refresh_token, err := s.ValidateToken(c)
+	claims, err := s.ValidateToken(c)
 	if err!= nil{
 		return err
 	}
-	// delete token from database
-	if err := s.datalayer.DeleteUsedRefreshToken(c,refresh_token); err!= nil{
+	//delete token from database
+	if err := s.datalayer.DeleteUsedRefreshToken(c,claims.Username); err!= nil{
 		return err
 	}
 	// now generate new tokens

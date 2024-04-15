@@ -7,9 +7,9 @@ INSERT INTO sessions (
     ) RETURNING *;
 -- name: DeleteUsedRefreshToken :exec
 DELETE FROM sessions
-WHERE refresh_token = $1;
+WHERE username = $1;
 -- name: GetRefreshToken :one
 SELECT refresh_token FROM sessions
-WHERE refresh_token = $1
+WHERE username = $1
 LIMIT 1;
 

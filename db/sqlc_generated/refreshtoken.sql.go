@@ -11,22 +11,22 @@ import (
 
 const deleteUsedRefreshToken = `-- name: DeleteUsedRefreshToken :exec
 DELETE FROM sessions
-WHERE refresh_token = $1
+WHERE username = $1
 `
 
-func (q *Queries) DeleteUsedRefreshToken(ctx context.Context, refreshToken string) error {
-	_, err := q.db.ExecContext(ctx, deleteUsedRefreshToken, refreshToken)
+func (q *Queries) DeleteUsedRefreshToken(ctx context.Context, username string) error {
+	_, err := q.db.ExecContext(ctx, deleteUsedRefreshToken, username)
 	return err
 }
 
 const getRefreshToken = `-- name: GetRefreshToken :one
 SELECT refresh_token FROM sessions
-WHERE refresh_token = $1
+WHERE username = $1
 LIMIT 1
 `
 
-func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (string, error) {
-	row := q.db.QueryRowContext(ctx, getRefreshToken, refreshToken)
+func (q *Queries) GetRefreshToken(ctx context.Context, username string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getRefreshToken, username)
 	var refresh_token string
 	err := row.Scan(&refresh_token)
 	return refresh_token, err
