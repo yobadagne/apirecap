@@ -1,14 +1,17 @@
 package model
 
 import (
+	"crypto/aes"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	
 )
 
+var IV = make([]byte, aes.BlockSize)
+//  TODO here try to handle error 
+var Encriptionkey = []byte("AES128Key-16Char")
 var Error_type = "error_type"
 var (
 	BAD_REQUEST           = "bad request"
@@ -17,10 +20,10 @@ var (
 	NOT_FOUND             = "not Found"
 )
 var HttpCodeGenerator = map[string]int{
-	BAD_REQUEST: http.StatusBadRequest,
+	BAD_REQUEST:           http.StatusBadRequest,
 	INTERNAL_SERVER_ERROR: http.StatusInternalServerError,
-	UNAUTHORIZED: http.StatusUnauthorized,
-	NOT_FOUND: http.StatusNotFound,
+	UNAUTHORIZED:          http.StatusUnauthorized,
+	NOT_FOUND:             http.StatusNotFound,
 }
 
 type Mystring string
@@ -55,18 +58,20 @@ type HandlerLayer interface {
 type AuthLayer interface {
 	GenerateHashPassword(c *gin.Context, password string) (string, error)
 	CompareHashPassword(c *gin.Context, password, hash string) error
+	EncryptToken(c *gin.Context, token string, iv []byte) (string, error)
+	DecryptToken(c *gin.Context, ciphertext string) (string, error)
 }
 
 // port for validating user input
 type ValidaterLayer interface {
 	ValidateForRegister(c *gin.Context, user User) error
-	ValidateForLogin(c *gin.Context,user User) error
-	ValidateEmail(c *gin.Context,email string) error
-	VerifyPassword(c *gin.Context,s string) error
+	ValidateForLogin(c *gin.Context, user User) error
+	ValidateEmail(c *gin.Context, email string) error
+	VerifyPassword(c *gin.Context, s string) error
 }
 
 // port for token
 type TokenLayer interface {
-	CreateToken(c *gin.Context,username string, duration time.Duration, key string) (string, error)
+	CreateToken(c *gin.Context, username string, duration time.Duration, key string) (string, error)
 	ValidateToken(c *gin.Context, key string) (*Claims, string, error)
 }

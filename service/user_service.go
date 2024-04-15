@@ -1,23 +1,22 @@
 package service
 
-import (
-	"crypto/sha256"
-	"fmt"
+import 
+(
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
+	"go.uber.org/zap"
 	"github.com/yobadagne/user_registration/auth"
 	"github.com/yobadagne/user_registration/data"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/token"
 	"github.com/yobadagne/user_registration/util"
 	"github.com/yobadagne/user_registration/val"
-	"go.uber.org/zap"
+	//"go.uber.org/zap"
 )
 
 var NewAuthLayer = auth.NewAuthLayer()
-var NewDataLayer= data.NewDataLayer(NewAuthLayer)
+var NewDataLayer = data.NewDataLayer(NewAuthLayer)
 var NewValLayer = val.NewValidateLayer()
 var NewTokenLayer = token.NewTokenLayer()
 
@@ -39,11 +38,11 @@ func NewServiceLayer() *ServiceLayer {
 
 // generate access and refresh tokens
 func (s ServiceLayer) GernerateAccessAndRefreshToken(c *gin.Context, username string) (access_token, refresh_token string, err error) {
-	config, err := util.LoadConfig(c,".")
+	config, err := util.LoadConfig(c, ".")
 	if err != nil {
 		return "", "", err
 	}
-	access_token, err = s.tokenlayer.CreateToken(c,username, 15*time.Minute, config.Access_key)
+	access_token, err = s.tokenlayer.CreateToken(c, username, 15*time.Minute, config.Access_key)
 	if err != nil {
 		return "", "", err
 	}
@@ -57,7 +56,7 @@ func (s ServiceLayer) GernerateAccessAndRefreshToken(c *gin.Context, username st
 //valiadte token
 
 func (s ServiceLayer) ValidateToken(c *gin.Context) (*model.Claims, error) {
-	config, err := util.LoadConfig(c,".")
+	config, err := util.LoadConfig(c, ".")
 	if err != nil {
 		return nil, err
 	}
@@ -68,23 +67,27 @@ func (s ServiceLayer) ValidateToken(c *gin.Context) (*model.Claims, error) {
 	}
 
 	//check for validation of refresh token session
-	refresh_tokenfromDB,err := s.datalayer.GetRefreshToken(c,claims.Username)
-	if err!= nil{
+	refresh_tokenfromDB, err := s.datalayer.GetRefreshToken(c, claims.Username)
+	if err != nil {
 		return nil, err
 	}
-	// now compare the two refresh tokens
-	hasher := sha256.New()
-	hasher.Write([]byte(refresh_token))
-	hashedToken := hasher.Sum(nil)
-	hashedTokenHex :=fmt.Sprintf("%x", hashedToken)
+	// refresh_tokenfromDB , err = s.authlayer.DecryptToken(c,refresh_tokenfromDB)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if hashedTokenHex != refresh_tokenfromDB{
-			err:= errorx.Decorate(errorx.IllegalState.New("refresh token doesnot match"),"refresh token does not match")
-			util.Logger.Error("refresh token doesnot match",zap.Error(err))
-			return nil, err
+	//encrypt the user refresh token
+	refresh_token, err = s.authlayer.EncryptToken(c, refresh_token,model.IV)
+	if err != nil {
+		return nil, err
 	}
-	
-	return claims,nil
+	if refresh_token != refresh_tokenfromDB {
+		err := errorx.Decorate(errorx.IllegalState.New("refresh token doesnot match"), "refresh token does not match")
+		util.Logger.Error("refresh token doesnot match", zap.Error(err))
+		return nil, err
+	}
+
+	return claims, nil
 }
 
 // port for database communication
@@ -94,16 +97,16 @@ func (s ServiceLayer) Register(usertoregister model.User, c *gin.Context) error 
 	if err := s.validatelayer.ValidateForRegister(c, usertoregister); err != nil {
 		return err
 	}
-	if err := s.validatelayer.VerifyPassword(c,usertoregister.Password); err != nil {
+	if err := s.validatelayer.VerifyPassword(c, usertoregister.Password); err != nil {
 		return err
 	}
-	if err := s.validatelayer.ValidateEmail(c,usertoregister.Email); err != nil {
+	if err := s.validatelayer.ValidateEmail(c, usertoregister.Email); err != nil {
 		return err
 	}
 
 	//hash password
 	password := usertoregister.Password
-	hashedpass, err := s.authlayer.GenerateHashPassword(c,password)
+	hashedpass, err := s.authlayer.GenerateHashPassword(c, password)
 	if err != nil {
 		return err
 	}
@@ -120,7 +123,7 @@ func (s ServiceLayer) Register(usertoregister model.User, c *gin.Context) error 
 
 func (s ServiceLayer) Login(usertolog model.User, c *gin.Context) error {
 	// validate user
-	if err := s.validatelayer.ValidateForLogin(c,usertolog); err != nil {
+	if err := s.validatelayer.ValidateForLogin(c, usertolog); err != nil {
 		return err
 	}
 
@@ -135,7 +138,7 @@ func (s ServiceLayer) Login(usertolog model.User, c *gin.Context) error {
 		return err
 	}
 	// generate access and referesh token
-	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c,usertolog.Username)
+	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c, usertolog.Username)
 	if err != nil {
 		return err
 	}
@@ -147,19 +150,20 @@ func (s ServiceLayer) Login(usertolog model.User, c *gin.Context) error {
 	c.Set("refresh_token", refresh_token)
 	return nil
 }
+
 //for refresh
 
-func (s ServiceLayer) Refresh (c *gin.Context) error{
+func (s ServiceLayer) Refresh(c *gin.Context) error {
 	claims, err := s.ValidateToken(c)
-	if err!= nil{
+	if err != nil {
 		return err
 	}
 	//delete token from database
-	if err := s.datalayer.DeleteUsedRefreshToken(c,claims.Username); err!= nil{
+	if err := s.datalayer.DeleteUsedRefreshToken(c, claims.Username); err != nil {
 		return err
 	}
 	// now generate new tokens
-	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c,claims.Username)
+	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c, claims.Username)
 	if err != nil {
 		return err
 	}
