@@ -12,4 +12,11 @@ WHERE username = $1;
 SELECT refresh_token FROM sessions
 WHERE username = $1
 LIMIT 1;
+-- name: DeleteRefreshTokenForLoginIfExists :exec
+DELETE FROM sessions
+WHERE EXISTS (
+    SELECT 1 FROM sessions
+    WHERE sessions.username = $1
+);
+
 

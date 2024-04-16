@@ -3,6 +3,7 @@ package data
 // database or mock implemenation
 import (
 	"database/sql"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
 	"github.com/lib/pq"
@@ -95,12 +96,11 @@ func (d *Datalayer) GetPasswordForLogin(usertolog model.User, c *gin.Context) (s
 }
 
 func (d *Datalayer) SaveNewRefreshToken(c *gin.Context, refreshtoken, username string) error {
-	
+
 	encrypted_refresh_token, err := d.auth.EncryptToken(c, refreshtoken, model.IV)
 	if err != nil {
 		return err
 	}
-
 
 	args := db.SaveNewRefreshTokenParams{
 		Username:     username,
@@ -147,4 +147,14 @@ func (d *Datalayer) GetRefreshToken(c *gin.Context, username string) (string, er
 		return "", err
 	}
 	return refresh_token, nil
+}
+func (d *Datalayer) DeleteRefreshTokenForLoginIfExists(c *gin.Context, username string) error {
+	err := d.q.DeleteRefreshTokenForLoginIfExists(c, username)
+	if err != nil {
+		err = errorx.Decorate(err, "Error while executing DeleteRefreshTokenForLoginIfExists")
+		util.Logger.Error("Error while executing DeleteRefreshTokenForLoginIfExists", zap.Error(err))
+		c.Set(model.Error_type, model.INTERNAL_SERVER_ERROR)
+		return err
+	}
+	return nil
 }

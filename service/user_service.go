@@ -137,6 +137,10 @@ func (s ServiceLayer) Login(usertolog model.User, c *gin.Context) error {
 	if err := s.authlayer.CompareHashPassword(c, usertolog.Password, passwordfromDB); err != nil {
 		return err
 	}
+	// delete its session , if it has 
+	if err := s.datalayer.DeleteRefreshTokenForLoginIfExists(c, usertolog.Username) ; err != nil {
+		return err
+	}
 	// generate access and referesh token
 	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(c, usertolog.Username)
 	if err != nil {

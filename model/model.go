@@ -43,6 +43,7 @@ type DataLayer interface {
 	SaveNewRefreshToken(c *gin.Context, refreshtoken, username string) error
 	DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) error
 	GetRefreshToken(c *gin.Context, refreshtoken string) (string, error)
+	DeleteRefreshTokenForLoginIfExists(c *gin.Context, username string) error 
 }
 
 //port for handler

@@ -9,6 +9,19 @@ import (
 	"context"
 )
 
+const deleteRefreshTokenForLoginIfExists = `-- name: DeleteRefreshTokenForLoginIfExists :exec
+DELETE FROM sessions
+WHERE EXISTS (
+    SELECT 1 FROM sessions
+    WHERE sessions.username = $1
+)
+`
+
+func (q *Queries) DeleteRefreshTokenForLoginIfExists(ctx context.Context, username string) error {
+	_, err := q.db.ExecContext(ctx, deleteRefreshTokenForLoginIfExists, username)
+	return err
+}
+
 const deleteUsedRefreshToken = `-- name: DeleteUsedRefreshToken :exec
 DELETE FROM sessions
 WHERE username = $1
