@@ -116,15 +116,32 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsNotStrongEnou
 	return err
 }
 
+//Scenario 5: Username Length Requirement
+
+func givenIAmRegisteringWithAUsernameLessThanCharactersLong(arg1 int) error {
+	usertoregister = model.User{
+		Username: "abc",
+		Email: util.RandomEmail(),
+		Password: "abc",
+	}
+	return nil
+}
+func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCharactersLong(arg1 int) error {
+	_, err := SendHTTPtoRegisterUser(usertoregister)
+	if err != nil {
+		return nil
+	}
+	return err
+}
+
+
 
 
 func givenIAmRegisteringWithAPasswordThatDoesNotMeetTheStrengthRequirements() error {
 	return godog.ErrPending
 }
 
-func givenIAmRegisteringWithAUsernameLessThanCharactersLong(arg1 int) error {
-	return godog.ErrPending
-}
+
 
 func iAmARegisteredUserWithValidCredentials() error {
 	return godog.ErrPending
@@ -166,9 +183,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered
 	return godog.ErrPending
 }
 
-func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCharactersLong(arg1 int) error {
-	return godog.ErrPending
-}
+
 
 func theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements() error {
 	return godog.ErrPending

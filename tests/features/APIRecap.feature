@@ -20,10 +20,10 @@ Feature: User Registration and Login
     When I submit the registration form
     Then the system should return an error message indicating that the password is not strong enough
 
-#   Scenario: Username Length Requirement
-#     Given Given I am registering with a username less than 5 characters long
-#     When I submit the registration form
-#     Then the system should return an error message indicating that the username must be at least 5 characters long
+  Scenario: Username Length Requirement
+    Given Given I am registering with a username less than 5 characters long
+    When I submit the registration form
+    Then the system should return an error message indicating that the username must be at least 5 characters long
 
 #   Scenario: Password Strength Requirement
 #     Given Given I am registering with a password that does not meet the strength requirements
