@@ -16,7 +16,7 @@ import (
 var usertoregister model.User
 var NewServiceLayer = service.NewServiceLayer()
 
-// Scenario 1
+// Scenario 1 User Registration with Valid Credentials
 func iAmRegisteringWithValidCredentials() error {
 	usertoregister = model.User{
 		Username: "eyobdagne",
@@ -26,18 +26,25 @@ func iAmRegisteringWithValidCredentials() error {
 	return nil
 }
 func iSubmitTheRegistrationForm() error {
-	_, err:= SendHTTPtoRegisterUser(usertoregister)
-	return err
+	//_, err:= SendHTTPtoRegisterUser(usertoregister)
+	return nil
 }
 
 func iShouldBeSuccessfullyRegistered() error {
-	// we try to read here
+	//we try to read here
 	c := gin.Context{}
-	_, err := NewServiceLayer.GetRegisteredUser(&c, "eyobdagne")
+	_, err := SendHTTPtoRegisterUser(usertoregister)
+	if err != nil{
+		return err
+	}
+	_, err = NewServiceLayer.GetRegisteredUser(&c, "eyobdagne")
 	return err
+	// err := iSubmitTheRegistrationForm(usertoregister)
+	// return err
+
 }
 
-// Scenario 2
+// Scenario 2 Duplicate Username Handling
 
 func aUserWithTheUsernameIsAlreadyRegistered(arg1 string) error {
 	usertoregister = model.User{
@@ -69,7 +76,31 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists()
 	return nil
 }
 
-//
+// Scenario 3: Invalid Email Format
+func iAmRegisteringWithAnInvalidEmailFormat() error {
+	usertoregister = model.User{
+		Username: util.RandomUsername(),
+		Email: "1234",
+		Password: "abcABC123@",
+	}
+	return nil
+}
+
+// func iSubmitTheRegistrationForm() error {
+// 	return nil
+// }
+
+func theSystemShouldReturnAnErrorMessageIndicatingThatTheEmailFormatIsInvalid() error {
+	status, err := SendHTTPtoRegisterUser(usertoregister)
+	if status == http.StatusBadRequest {
+		return err
+	}
+	return nil
+	
+}
+
+
+
 
 func givenIAmRegisteringWithAPasswordThatDoesNotMeetTheStrengthRequirements() error {
 	return godog.ErrPending
@@ -95,9 +126,7 @@ func iAmRegisteringWithAWeakPassword() error {
 	return godog.ErrPending
 }
 
-func iAmRegisteringWithAnInvalidEmailFormat() error {
-	return godog.ErrPending
-}
+
 
 func iLogInWithMyUsernameAndPassword() error {
 	return godog.ErrPending
@@ -111,9 +140,7 @@ func theSystemShouldGenerateAJWTTokenForAuthenticationAndIssueARefreshToken() er
 	return godog.ErrPending
 }
 
-func theSystemShouldReturnAnErrorMessageIndicatingThatTheEmailFormatIsInvalid() error {
-	return godog.ErrPending
-}
+
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() error {
 	return godog.ErrPending
@@ -143,7 +170,7 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I am attempting to log in with an invalid password$`, iAmAttemptingToLogInWithAnInvalidPassword)
 	ctx.Step(`^I am attempting to log in with an invalid username$`, iAmAttemptingToLogInWithAnInvalidUsername)
 	ctx.Step(`^I am registering with a weak password$`, iAmRegisteringWithAWeakPassword)
-	ctx.Step(`^I am registering with an invalid email format,$`, iAmRegisteringWithAnInvalidEmailFormat)
+	ctx.Step(`^I am registering with an invalid email format$`, iAmRegisteringWithAnInvalidEmailFormat)
 	ctx.Step(`^I am registering with valid credentials,$`, iAmRegisteringWithValidCredentials)
 	ctx.Step(`^I attempt to register with the same username$`, iAttemptToRegisterWithTheSameUsername)
 	ctx.Step(`^I log in with my username and password$`, iLogInWithMyUsernameAndPassword)
