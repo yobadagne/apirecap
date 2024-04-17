@@ -2,7 +2,7 @@ package handler
 
 // implement handlers
 import (
-	"fmt"
+	
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,10 +43,9 @@ func (h HandlerLayer) Register(c *gin.Context) {
 
 	if err != nil {
 		c.Error(err)
-		fmt.Println("here")
 		return
 	}
-	// aborting the request will be done in the erroe handler middleware
+	// aborting the request will be done in the error handler middleware
 	c.JSON(http.StatusOK, "new user registered")
 }
 
