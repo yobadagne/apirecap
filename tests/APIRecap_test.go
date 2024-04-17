@@ -122,7 +122,7 @@ func givenIAmRegisteringWithAUsernameLessThanCharactersLong(arg1 int) error {
 	usertoregister = model.User{
 		Username: "abc",
 		Email: util.RandomEmail(),
-		Password: "abc",
+		Password: "abcABC123@",
 	}
 	return nil
 }
@@ -133,14 +133,22 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCh
 	}
 	return err
 }
-
-
-
-
+//Scenario 6 : Password Strength Requirement
 func givenIAmRegisteringWithAPasswordThatDoesNotMeetTheStrengthRequirements() error {
-	return godog.ErrPending
+	usertoregister = model.User{
+		Username: util.RandomUsername(),
+		Email: util.RandomEmail(),
+		Password: "abc",
+	}
+	return nil
 }
-
+func theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements() error {
+	_, err := SendHTTPtoRegisterUser(usertoregister)
+	if err != nil {
+		return nil
+	}
+	return err
+}
 
 
 func iAmARegisteredUserWithValidCredentials() error {
@@ -185,9 +193,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered
 
 
 
-func theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements() error {
-	return godog.ErrPending
-}
+
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a user with the username "([^"]*)" is already registered$`, aUserWithTheUsernameIsAlreadyRegistered)
