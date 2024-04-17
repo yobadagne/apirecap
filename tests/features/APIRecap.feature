@@ -42,7 +42,7 @@ Feature: User Registration and Login
     When I submit the login form
     Then the system should return an error message indicating that the username is not registered
 
-#   Scenario: Login with Invalid Password
-#     Given I am attempting to log in with an invalid password
-#     When I submit the login form
-#     Then the system should return an error message indicating that the password is incorrect
+  Scenario: Login with Invalid Password
+    Given I am attempting to log in with an invalid password
+    When I submit the login form
+    Then the system should return an error message indicating that the password is incorrect

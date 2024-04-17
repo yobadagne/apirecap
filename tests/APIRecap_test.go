@@ -189,24 +189,31 @@ func iSubmitTheLoginForm() error {
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered() error {
 	var err error
-	_, Acc, Ref, err = SendHTTPtoLogUser(usertoregister)
+	_, _, _, err = SendHTTPtoLogUser(usertoregister)
 	if err != nil{
 		return nil
 	}
 	return err
 }
-
+//Scenario 9: Login with Invalid Password
 
 func iAmAttemptingToLogInWithAnInvalidPassword() error {
-	return godog.ErrPending
+	usertoregister = model.User{
+		Username: "eyobdagne",
+		Email:    util.RandomEmail(),
+		Password: "abcABC",
+	}
+	return nil
 }
 
 
-
-
-
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() error {
-	return godog.ErrPending
+	var err error
+	_, _, _, err = SendHTTPtoLogUser(usertoregister)
+	if err != nil{
+		return nil
+	}
+	return err
 }
 
 
