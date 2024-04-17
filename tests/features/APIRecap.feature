@@ -15,10 +15,10 @@ Feature: User Registration and Login
     When I submit the registration form
     Then the system should return an error message indicating that the email format is invalid
 
-#   Scenario: Weak Password Handling
-#     Given I am registering with a weak password
-#     When I submit the registration form
-#     Then the system should return an error message indicating that the password is not strong enough
+  Scenario: Weak Password Handling
+    Given I am registering with a weak password
+    When I submit the registration form
+    Then the system should return an error message indicating that the password is not strong enough
 
 #   Scenario: Username Length Requirement
 #     Given Given I am registering with a username less than 5 characters long
