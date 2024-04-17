@@ -73,7 +73,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists()
 	if err != nil {
 		return nil
 	}
-	return err
+	return fmt.Errorf("Couldn't getUsername Already Exists error")
 
 }
 
@@ -87,16 +87,14 @@ func iAmRegisteringWithAnInvalidEmailFormat() error {
 	return nil
 }
 
-// func iSubmitTheRegistrationForm() error {
-// 	return nil
-// }
+
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatTheEmailFormatIsInvalid() error {
 	_, err := SendHTTPtoRegisterUser(usertoregister)
 	if err != nil {
 		return nil
 	}
-	return err
+	return fmt.Errorf("Couldn't get The Email Format Is Invalid error")
 }
 
 // Scenario 4: Weak Password Handling
@@ -113,7 +111,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsNotStrongEnou
 	if err != nil {
 		return nil
 	}
-	return err
+	return fmt.Errorf("Couldn't get The Password Is Not Strong Enough error")
 }
 
 //Scenario 5: Username Length Requirement
@@ -131,7 +129,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCh
 	if err != nil {
 		return nil
 	}
-	return err
+	return fmt.Errorf("Couldn't get The Username Must Be AtLeast 5 Characters Long error")
 }
 
 // Scenario 6 : Password Strength Requirement
@@ -148,7 +146,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements() erro
 	if err != nil {
 		return nil
 	}
-	return err
+	return fmt.Errorf("Couldn't get Error Message Indicating The Password Requirements error")
 }
 
 //Scenario 7: Login with Valid Credentials
@@ -193,7 +191,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered
 	if err != nil{
 		return nil
 	}
-	return err
+	return fmt.Errorf("The system Unexpectedly loged in")
 }
 //Scenario 9: Login with Invalid Password
 
@@ -213,7 +211,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() e
 	if err != nil{
 		return nil
 	}
-	return err
+	return fmt.Errorf("The system Unexpectedly loged in")
 }
 
 
