@@ -6,19 +6,70 @@ import (
 	"fmt"
 	"net/http"
 
-	//"github.com/gin-gonic/gin"
-
 	"github.com/cucumber/godog"
+	"github.com/gin-gonic/gin"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/service"
+	"github.com/yobadagne/user_registration/util"
 )
 
 var usertoregister model.User
 var NewServiceLayer = service.NewServiceLayer()
 
-func aUserWithTheUsernameIsAlreadyRegistered(arg1 string) error {
-	return godog.ErrPending
+// Scenario 1
+func iAmRegisteringWithValidCredentials() error {
+	usertoregister = model.User{
+		Username: "eyobdagne",
+		Email:    util.RandomEmail(),
+		Password: "abcABC123@",
+	}
+	return nil
 }
+func iSubmitTheRegistrationForm() error {
+	_, err:= SendHTTPtoRegisterUser(usertoregister)
+	return err
+}
+
+func iShouldBeSuccessfullyRegistered() error {
+	// we try to read here
+	c := gin.Context{}
+	_, err := NewServiceLayer.GetRegisteredUser(&c, "eyobdagne")
+	return err
+}
+
+// Scenario 2
+
+func aUserWithTheUsernameIsAlreadyRegistered(arg1 string) error {
+	usertoregister = model.User{
+		Username: arg1,
+		Email:    util.RandomEmail(),
+		Password: "abcABC123@",
+	}
+	_ ,err := SendHTTPtoRegisterUser(usertoregister)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func iAttemptToRegisterWithTheSameUsername() error {
+	usertoregister = model.User{
+		Username: "testuser",
+		Email:    util.RandomEmail(),
+		Password: "abcABC123@",
+	}
+	return nil
+}
+
+func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists() error {
+	status, err := SendHTTPtoRegisterUser(usertoregister)
+	if status == http.StatusBadRequest {
+		return err
+	}
+	return nil
+}
+
+//
 
 func givenIAmRegisteringWithAPasswordThatDoesNotMeetTheStrengthRequirements() error {
 	return godog.ErrPending
@@ -48,63 +99,12 @@ func iAmRegisteringWithAnInvalidEmailFormat() error {
 	return godog.ErrPending
 }
 
-func iAmRegisteringWithValidCredentials() error {
-	usertoregister = model.User{
-		Username: "eyobdagne101",
-		Email:    "yobadagne101@gmail.com",
-		Password: "abcABC123@",
-	}
-	return nil
-}
-
-func iAttemptToRegisterWithTheSameUsername() error {
-	return godog.ErrPending
-}
-
 func iLogInWithMyUsernameAndPassword() error {
-	return godog.ErrPending
-}
-
-func iShouldBeSuccessfullyRegistered() error {
 	return godog.ErrPending
 }
 
 func iSubmitTheLoginForm() error {
 	return godog.ErrPending
-}
-
-// func iSubmitTheRegistrationForm() error {
-// 	return godog.ErrPending
-// }
-
-func iSubmitTheRegistrationForm() error {
-	// Convert registrationForm struct to JSON
-	jsonData, err := json.Marshal(usertoregister)
-	if err != nil {
-		return fmt.Errorf("failed to marshal registration form data: %v", err)
-	}
-	// Create an HTTP client
-	client := &http.Client{}
-
-	// Prepare the request
-	req, err := http.NewRequest("POST", "http://localhost:8080/register", bytes.NewBuffer(jsonData))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-
-	// Send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	return nil
 }
 
 func theSystemShouldGenerateAJWTTokenForAuthenticationAndIssueARefreshToken() error {
@@ -120,10 +120,6 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() e
 }
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsNotStrongEnough() error {
-	return godog.ErrPending
-}
-
-func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists() error {
 	return godog.ErrPending
 }
 
@@ -163,4 +159,34 @@ func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the system should return an error message indicating that the username is not registered$`, theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered)
 	ctx.Step(`^the system should return an error message indicating that the username must be at least (\d+) characters long$`, theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCharactersLong)
 	ctx.Step(`^the system should return an error message indicating the password requirements$`, theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements)
+}
+
+func SendHTTPtoRegisterUser(usertoregister model.User) (int, error) {
+	// Convert registrationForm struct to JSON
+	jsonData, err := json.Marshal(usertoregister)
+	if err != nil {
+		return http.StatusInternalServerError, fmt.Errorf("failed to marshal registration form data: %v", err)
+	}
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Prepare the request
+	req, err := http.NewRequest("POST", "http://localhost:8080/register", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return http.StatusInternalServerError,fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return http.StatusInternalServerError,fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		return http.StatusInternalServerError,fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return resp.StatusCode, nil
 }
