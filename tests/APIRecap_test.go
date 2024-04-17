@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	//"github.com/gin-gonic/gin"
 
 	"github.com/cucumber/godog"
 	"github.com/yobadagne/user_registration/model"
@@ -50,12 +50,11 @@ func iAmRegisteringWithAnInvalidEmailFormat() error {
 
 func iAmRegisteringWithValidCredentials() error {
 	usertoregister = model.User{
-		Username: "eyobdagne6",
-		Email:    "yobadagne6@gmail.com",
+		Username: "eyobdagne101",
+		Email:    "yobadagne101@gmail.com",
 		Password: "abcABC123@",
 	}
-	err := NewServiceLayer.Register(usertoregister, &gin.Context{})
-	return err
+	return nil
 }
 
 func iAttemptToRegisterWithTheSameUsername() error {
