@@ -36,16 +36,11 @@ func iSubmitTheRegistrationForm() error {
 }
 
 func iShouldBeSuccessfullyRegistered() error {
-	//we try to read here
-	//c := gin.Context{}
+
 	_, err := SendHTTPtoRegisterUser(usertoregister)
 	if err != nil {
 		return err
 	}
-	// _, err = NewServiceLayer.GetRegisteredUser(&c, "eyobdagne")
-	// return err
-	// err := iSubmitTheRegistrationForm(usertoregister)
-	// return err
 	return nil
 }
 
@@ -179,26 +174,42 @@ func theSystemShouldGenerateAJWTTokenForAuthenticationAndIssueARefreshToken() er
 	}
 	return fmt.Errorf("Error while logining in")
 }
+// Scenario 8: Login with Invalid Username
+func iAmAttemptingToLogInWithAnInvalidUsername() error {
+	usertoregister = model.User{
+		Username: util.RandomUsername(),
+		Email:    util.RandomEmail(),
+		Password: "abcABC123@",
+	}
+	return nil
+}
+func iSubmitTheLoginForm() error {
+	return nil
+}
+
+func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered() error {
+	var err error
+	_, Acc, Ref, err = SendHTTPtoLogUser(usertoregister)
+	if err != nil{
+		return nil
+	}
+	return err
+}
+
 
 func iAmAttemptingToLogInWithAnInvalidPassword() error {
 	return godog.ErrPending
 }
 
-func iAmAttemptingToLogInWithAnInvalidUsername() error {
-	return godog.ErrPending
-}
 
-func iSubmitTheLoginForm() error {
-	return godog.ErrPending
-}
+
+
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() error {
 	return godog.ErrPending
 }
 
-func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered() error {
-	return godog.ErrPending
-}
+
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a user with the username "([^"]*)" is already registered$`, aUserWithTheUsernameIsAlreadyRegistered)

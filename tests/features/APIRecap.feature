@@ -37,10 +37,10 @@ Feature: User Registration and Login
     When I log in with my username and password
     Then the system should generate a JWT token for authentication and issue a refresh token
 
-#   Scenario: Login with Invalid Username
-#     Given I am attempting to log in with an invalid username
-#     When I submit the login form
-#     Then the system should return an error message indicating that the username is not registered
+  Scenario: Login with Invalid Username
+    Given I am attempting to log in with an invalid username
+    When I submit the login form
+    Then the system should return an error message indicating that the username is not registered
 
 #   Scenario: Login with Invalid Password
 #     Given I am attempting to log in with an invalid password
