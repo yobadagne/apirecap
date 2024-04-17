@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/cucumber/godog"
@@ -13,7 +14,11 @@ import (
 	"github.com/yobadagne/user_registration/util"
 )
 
-var usertoregister model.User
+var (
+	usertoregister model.User
+	Acc            string
+	Ref            string
+)
 var NewServiceLayer = service.NewServiceLayer()
 
 // Scenario 1 User Registration with Valid Credentials
@@ -34,14 +39,14 @@ func iShouldBeSuccessfullyRegistered() error {
 	//we try to read here
 	//c := gin.Context{}
 	_, err := SendHTTPtoRegisterUser(usertoregister)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	// _, err = NewServiceLayer.GetRegisteredUser(&c, "eyobdagne")
 	// return err
 	// err := iSubmitTheRegistrationForm(usertoregister)
 	// return err
-return nil
+	return nil
 }
 
 // Scenario 2 Duplicate Username Handling
@@ -52,7 +57,7 @@ func aUserWithTheUsernameIsAlreadyRegistered(arg1 string) error {
 		Email:    util.RandomEmail(),
 		Password: "abcABC123@",
 	}
-	_ ,err := SendHTTPtoRegisterUser(usertoregister)
+	_, err := SendHTTPtoRegisterUser(usertoregister)
 	if err != nil {
 		return err
 	}
@@ -70,7 +75,7 @@ func iAttemptToRegisterWithTheSameUsername() error {
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists() error {
 	_, err := SendHTTPtoRegisterUser(usertoregister)
-	if err != nil{
+	if err != nil {
 		return nil
 	}
 	return err
@@ -81,7 +86,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameAlreadyExists()
 func iAmRegisteringWithAnInvalidEmailFormat() error {
 	usertoregister = model.User{
 		Username: util.RandomUsername(),
-		Email: "1234",
+		Email:    "1234",
 		Password: "abcABC123@",
 	}
 	return nil
@@ -99,15 +104,15 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheEmailFormatIsInvalid() 
 	return err
 }
 
-//Scenario 4: Weak Password Handling
+// Scenario 4: Weak Password Handling
 func iAmRegisteringWithAWeakPassword() error {
 	usertoregister = model.User{
 		Username: util.RandomUsername(),
-		Email: util.RandomEmail(),
+		Email:    util.RandomEmail(),
 		Password: "abc",
 	}
 	return nil
-} 
+}
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsNotStrongEnough() error {
 	_, err := SendHTTPtoRegisterUser(usertoregister)
 	if err != nil {
@@ -121,7 +126,7 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsNotStrongEnou
 func givenIAmRegisteringWithAUsernameLessThanCharactersLong(arg1 int) error {
 	usertoregister = model.User{
 		Username: "abc",
-		Email: util.RandomEmail(),
+		Email:    util.RandomEmail(),
 		Password: "abcABC123@",
 	}
 	return nil
@@ -133,11 +138,12 @@ func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameMustBeAtLeastCh
 	}
 	return err
 }
-//Scenario 6 : Password Strength Requirement
+
+// Scenario 6 : Password Strength Requirement
 func givenIAmRegisteringWithAPasswordThatDoesNotMeetTheStrengthRequirements() error {
 	usertoregister = model.User{
 		Username: util.RandomUsername(),
-		Email: util.RandomEmail(),
+		Email:    util.RandomEmail(),
 		Password: "abc",
 	}
 	return nil
@@ -150,9 +156,28 @@ func theSystemShouldReturnAnErrorMessageIndicatingThePasswordRequirements() erro
 	return err
 }
 
+//Scenario 7: Login with Valid Credentials
 
 func iAmARegisteredUserWithValidCredentials() error {
-	return godog.ErrPending
+	usertoregister = model.User{
+		Username: "eyobdagne2",
+		Email:    util.RandomEmail(),
+		Password: "abcABC123@",
+	}
+	_, err := SendHTTPtoRegisterUser(usertoregister)
+	return err
+}
+func iLogInWithMyUsernameAndPassword() error {
+	var err error
+	_, Acc, Ref, err = SendHTTPtoLogUser(usertoregister)
+	return err
+}
+
+func theSystemShouldGenerateAJWTTokenForAuthenticationAndIssueARefreshToken() error {
+	if Acc != " " && Ref != " " {
+		return nil
+	}
+	return fmt.Errorf("Error while logining in")
 }
 
 func iAmAttemptingToLogInWithAnInvalidPassword() error {
@@ -163,37 +188,17 @@ func iAmAttemptingToLogInWithAnInvalidUsername() error {
 	return godog.ErrPending
 }
 
-
-
-
-
-func iLogInWithMyUsernameAndPassword() error {
-	return godog.ErrPending
-}
-
 func iSubmitTheLoginForm() error {
 	return godog.ErrPending
 }
-
-func theSystemShouldGenerateAJWTTokenForAuthenticationAndIssueARefreshToken() error {
-	return godog.ErrPending
-}
-
-
 
 func theSystemShouldReturnAnErrorMessageIndicatingThatThePasswordIsIncorrect() error {
 	return godog.ErrPending
 }
 
-
-
 func theSystemShouldReturnAnErrorMessageIndicatingThatTheUsernameIsNotRegistered() error {
 	return godog.ErrPending
 }
-
-
-
-
 
 func InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a user with the username "([^"]*)" is already registered$`, aUserWithTheUsernameIsAlreadyRegistered)
@@ -233,20 +238,70 @@ func SendHTTPtoRegisterUser(usertoregister model.User) (int, error) {
 	// Prepare the request
 	req, err := http.NewRequest("POST", "http://localhost:8080/register", bytes.NewBuffer(jsonData))
 	if err != nil {
-		return http.StatusInternalServerError,fmt.Errorf("failed to create request: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to create request: %v", err)
 	}
 
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
-		return http.StatusInternalServerError,fmt.Errorf("failed to send request: %v", err)
+		return http.StatusInternalServerError, fmt.Errorf("failed to send request: %v", err)
 	}
 	defer resp.Body.Close()
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
-		return http.StatusInternalServerError,fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return http.StatusInternalServerError, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	return resp.StatusCode, nil
+}
+func SendHTTPtoLogUser(usertolog model.User) (int, string, string, error) {
+	// Convert user struct to JSON
+	jsonData, err := json.Marshal(usertolog)
+	if err != nil {
+		return http.StatusInternalServerError, "", "", fmt.Errorf("failed to marshal user data: %v", err)
+	}
+
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Prepare the request
+	req, err := http.NewRequest("POST", "http://localhost:8080/login", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return http.StatusInternalServerError, "", "", fmt.Errorf("failed to create request: %v", err)
+	}
+
+	// Set the request headers
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return http.StatusInternalServerError, "", "", fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return http.StatusInternalServerError, "", "", fmt.Errorf("failed to read response body: %v", err)
+	}
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		return resp.StatusCode, "", "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	// Parse the response body to extract tokens
+	var tokens struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+	}
+	err = json.Unmarshal(body, &tokens)
+	if err != nil {
+		return http.StatusInternalServerError, "", "", fmt.Errorf("failed to parse tokens from response body: %v", err)
+	}
+
+	// Return status code and tokens
+	return resp.StatusCode, tokens.AccessToken, tokens.RefreshToken, nil
 }

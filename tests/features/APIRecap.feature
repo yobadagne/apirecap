@@ -32,10 +32,10 @@ Feature: User Registration and Login
 
 # # Feature: User Login
 
-#   Scenario: Login with Valid Credentials
-#     Given I am a registered user with valid credentials
-#     When I log in with my username and password
-#     Then the system should generate a JWT token for authentication and issue a refresh token
+  Scenario: Login with Valid Credentials
+    Given I am a registered user with valid credentials
+    When I log in with my username and password
+    Then the system should generate a JWT token for authentication and issue a refresh token
 
 #   Scenario: Login with Invalid Username
 #     Given I am attempting to log in with an invalid username
