@@ -25,7 +25,7 @@ func (v ValidateLayer) ValidateForRegister(u model.User) error {
 
 	if err != nil {
 		util.Logger.Error("Invalid User Inputs", zap.Error(err))
-		err = model.ErrBadRequest.Wrap(err,"Invalid User Inputs")
+		err = model.ErrBadRequest.Wrap(err,err.Error())
 		model.Error_type = model.BAD_REQUEST
 		return err
 	}
@@ -40,7 +40,7 @@ func (v ValidateLayer) ValidateForLogin(u model.User) error {
 
 	if err != nil {
 		util.Logger.Error("Invalid Inputs", zap.Error(err))
-		err = model.ErrBadRequest.Wrap(err,"Invalid User Inputs")
+		err = model.ErrBadRequest.Wrap(err,err.Error())
 		model.Error_type = model.BAD_REQUEST
 		return err
 	}

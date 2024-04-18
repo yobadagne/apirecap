@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
 	"github.com/cucumber/godog"
-	//"github.com/gin-gonic/gin"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/service"
 	"github.com/yobadagne/user_registration/util"
@@ -41,7 +39,7 @@ func iShouldBeSuccessfullyRegistered() error {
 	if err != nil {
 		return err
 	}
-	return nil
+	return err
 }
 
 // Scenario 2 Duplicate Username Handling
@@ -54,9 +52,9 @@ func aUserWithTheUsernameIsAlreadyRegistered(arg1 string) error {
 	}
 	_, err := SendHTTPtoRegisterUser(usertoregister)
 	if err != nil {
-		return err
+		return nil
 	}
-	return nil
+	return fmt.Errorf("User Registerd, Should get an error")
 }
 
 func iAttemptToRegisterWithTheSameUsername() error {

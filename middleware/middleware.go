@@ -6,8 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
-	//"github.com/joomcode/errorx"
 )
 
 func RequestID() gin.HandlerFunc {
@@ -37,13 +37,15 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 }
 
 func ErrorHandler() gin.HandlerFunc {
-	return func(c *gin.Context){ 
-		
+	return func(c *gin.Context) {
+
 		c.Next()
-		// use map to bind error code 
+		// use map to bind error code
 		if len(c.Errors) > 0 {
-			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err":c.Errors.Last().Error()})
-			
+			err := c.Errors.Last().Unwrap() // get the original error
+			errx := errorx.Cast(err) // cast to errorx to use the Message mthod so that we can diplay the message to user
+			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err": errx.Message()})
+
 		}
 	}
 }

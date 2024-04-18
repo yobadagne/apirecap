@@ -62,7 +62,7 @@ func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims
 	}
 	if !token.Valid {
 		err := model.ErrUnauthorized.NewType("").New("Invalid token when validating")
-		util.Logger.Error("Invalid token when  validating",  zap.Error(err))
+		util.Logger.Error("Invalid token when validating",  zap.Error(err))
 		model.Error_type = model.UNAUTHORIZED
 		return nil, " ", err
 	}

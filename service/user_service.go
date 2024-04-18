@@ -80,8 +80,8 @@ func (s ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, 
 		return nil, err
 	}
 	if refresh_token != refresh_tokenfromDB {
-		err = model.ErrUnauthorized.NewType("").New("refresh token doesnot match")
 		util.Logger.Error("refresh token doesnot match", zap.Error(err))
+		err = model.ErrUnauthorized.NewType("").New("refresh token doesnot match")
 		model.Error_type = model.UNAUTHORIZED
 		return nil, err
 	}

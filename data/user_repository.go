@@ -4,6 +4,8 @@ package data
 import (
 	"context"
 	"database/sql"
+	"strings"
+
 	"github.com/lib/pq"
 	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 	"github.com/yobadagne/user_registration/model"
@@ -53,10 +55,19 @@ func (d *Datalayer) Register(newuser model.User) error {
 		// check for constarint violation
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" { // constraint violation error in postgress
-				util.Logger.Error("Username and email exists", zap.Error(err))
-				err = model.ErrBadRequest.New("Username and email exists must be unique")
-				model.Error_type =model.BAD_REQUEST
-				return err
+				firstpart := strings.Split(pqErr.Detail, " ")[1]
+				column := strings.Split(firstpart,"=")[0]
+				if column == "(username)"{
+					err = model.ErrBadRequest.New("Username exists, must be unique , if you are registerd please login")
+					util.Logger.Error("Username exists", zap.Error(err))
+					model.Error_type = model.BAD_REQUEST
+					return err
+				} else {
+					err = model.ErrBadRequest.New("Email exists, must be unique , if you are registerd please login")
+					util.Logger.Error("Email exists", zap.Error(err))
+					model.Error_type =model.BAD_REQUEST
+					return err
+				}
 			}
 			util.Logger.Error(pqErr.Message, zap.Error(err))
 			err = model.ErrInternalServerErr.New(pqErr.Message)
@@ -115,7 +126,7 @@ func (d *Datalayer) SaveNewRefreshToken(refreshtoken, username string) error {
 			model.Error_type = model.INTERNAL_SERVER_ERROR
 			return err
 		}
-		util.Logger.Error("Can not the save refresh token", zap.Error(err))
+		util.Logger.Error("Can not save refresh token", zap.Error(err))
 		err = model.ErrInternalServerErr.New("Error while processing your refresh token")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return err

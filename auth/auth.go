@@ -4,6 +4,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	
+
+	//"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"
@@ -25,15 +28,15 @@ func PKCS7Unpad(data []byte) []byte{
 }
 func (a AuthLayer) GenerateHashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	if err != nil {
-
+	if err != nil {		
 		util.Logger.Error("Can not hash password using bcrypt", zap.Error(err))
 		// change error into errorx format
 		err = model.ErrInternalServerErr.New("Can not hash password")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
 	}
-	return string(bytes), nil
+
+	return string(bytes), err
 }
 
 // compare for login
@@ -55,7 +58,7 @@ func (a AuthLayer) EncryptToken(token string , iv []byte) (string, error) {
 	if err != nil {
 		// change error into errorx format
 		util.Logger.Error("Can not create encription block using AES encryption", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Can not create encription block")
+		err = model.ErrInternalServerErr.New("Can not create encryption block")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return " ", err
 	}

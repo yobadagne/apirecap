@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/aes"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -11,15 +12,25 @@ import (
 )
 
 var IV = make([]byte, aes.BlockSize)
-//  TODO here try to handle error 
+
+// TODO here try to handle error
 var Encriptionkey = []byte("AES128Key-16Char")
 var Error_type string = "error_type"
-var (	
-	ErrNotFound = errorx.DataUnavailable
+var (
+	ErrNotFound          = errorx.DataUnavailable
 	ErrInternalServerErr = errorx.InternalError
-	ErrBadRequest = errorx.IllegalArgument
-	ErrUnauthorized = errorx.NewNamespace("unauthorized")
+	ErrBadRequest        = errorx.IllegalArgument
+	ErrUnauthorized      = errorx.NewNamespace("unauthorized")
 )
+
+type MyError struct {
+	Code    int
+	Message string
+}
+
+func (m MyError) Error() string {
+	return fmt.Sprintf("Error: %v %v", m.Code, m.Message)
+}
 
 var (
 	BAD_REQUEST           = "bad request"
@@ -51,7 +62,7 @@ type DataLayer interface {
 	SaveNewRefreshToken(refreshtoken, username string) error
 	DeleteUsedRefreshToken(refreshtoken string) error
 	GetRefreshToken(refreshtoken string) (string, error)
-	DeleteRefreshTokenForLoginIfExists(username string) error 
+	DeleteRefreshTokenForLoginIfExists(username string) error
 	GetRegisteredUser(username string) (string, error)
 }
 
@@ -81,5 +92,5 @@ type ValidaterLayer interface {
 // port for token
 type TokenLayer interface {
 	CreateToken(username string, duration time.Duration, key string) (string, error)
-	ValidateToken(authorizationHeader,key string) (*Claims, string, error)
+	ValidateToken(authorizationHeader, key string) (*Claims, string, error)
 }
