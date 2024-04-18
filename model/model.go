@@ -2,7 +2,6 @@ package model
 
 import (
 	"crypto/aes"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -22,16 +21,6 @@ var (
 	ErrBadRequest        = errorx.IllegalArgument
 	ErrUnauthorized      = errorx.NewNamespace("unauthorized")
 )
-
-type MyError struct {
-	Code    int
-	Message string
-}
-
-func (m MyError) Error() string {
-	return fmt.Sprintf("Error: %v %v", m.Code, m.Message)
-}
-
 var (
 	BAD_REQUEST           = "bad request"
 	INTERNAL_SERVER_ERROR = "internal server error"
