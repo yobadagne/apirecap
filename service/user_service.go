@@ -3,7 +3,6 @@ package service
 import 
 (
 	"time"
-	"github.com/joomcode/errorx"
 	"go.uber.org/zap"
 	"github.com/yobadagne/user_registration/auth"
 	"github.com/yobadagne/user_registration/data"
@@ -81,7 +80,7 @@ func (s ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, 
 		return nil, err
 	}
 	if refresh_token != refresh_tokenfromDB {
-		err := errorx.Decorate(errorx.IllegalState.New("refresh token doesnot match"), "refresh token does not match")
+		err = model.ErrUnauthorized.NewType("").New("refresh token doesnot match")
 		util.Logger.Error("refresh token doesnot match", zap.Error(err))
 		model.Error_type = model.UNAUTHORIZED
 		return nil, err

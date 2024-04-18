@@ -7,12 +7,20 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/joomcode/errorx"
 )
 
 var IV = make([]byte, aes.BlockSize)
 //  TODO here try to handle error 
 var Encriptionkey = []byte("AES128Key-16Char")
-var Error_type = "error_type"
+var Error_type string = "error_type"
+var (	
+	ErrNotFound = errorx.DataUnavailable
+	ErrInternalServerErr = errorx.InternalError
+	ErrBadRequest = errorx.IllegalArgument
+	ErrUnauthorized = errorx.NewNamespace("unauthorized")
+)
+
 var (
 	BAD_REQUEST           = "bad request"
 	INTERNAL_SERVER_ERROR = "internal server error"

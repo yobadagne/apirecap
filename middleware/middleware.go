@@ -42,11 +42,7 @@ func ErrorHandler() gin.HandlerFunc {
 		c.Next()
 		// use map to bind error code 
 		if len(c.Errors) > 0 {
-			//error_type , ok:= c.Get(model.Error_type)
-			// if !ok {
-			// 	c.AbortWithStatusJSON(model.HttpCodeGenerator[model.INTERNAL_SERVER_ERROR], gin.H{"err":c.Errors.String()})
-			// } else{
-			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err":c.Errors.String()})
+			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err":c.Errors.Last().Error()})
 			
 		}
 	}

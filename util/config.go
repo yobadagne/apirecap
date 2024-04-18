@@ -1,7 +1,6 @@
 package util
 
 import (
-	"github.com/joomcode/errorx"
 	"github.com/spf13/viper"
 	"github.com/yobadagne/user_registration/model"
 	"go.uber.org/zap"
@@ -21,16 +20,16 @@ func LoadConfig(path string) ( config Config, err error) {
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		err = errorx.Decorate(err, "Error in viper config")
 		Logger.Error("Error in viper config", zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error in viper config")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		err = errorx.Decorate(err, "Error in viper unmarshal")
 		Logger.Error("Error in viper unmarshal",zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error in viper unmarshal")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}

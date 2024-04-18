@@ -6,7 +6,6 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
-	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"
@@ -25,8 +24,8 @@ func (v ValidateLayer) ValidateForRegister(u model.User) error {
 		validation.Field(&u.Email, validation.Required, is.Email, validation.Length(5, 100)))
 
 	if err != nil {
-		err  = errorx.Decorate(err,"Invalid User Inputs") 
 		util.Logger.Error("Invalid User Inputs", zap.Error(err))
+		err = model.ErrBadRequest.Wrap(err,"Invalid User Inputs")
 		model.Error_type = model.BAD_REQUEST
 		return err
 	}
@@ -40,8 +39,8 @@ func (v ValidateLayer) ValidateForLogin(u model.User) error {
 		validation.Field(&u.Password, validation.Required, validation.Length(8, 50)))
 
 	if err != nil {
-		err := errorx.Decorate(err, "Invalid Inputs") 
 		util.Logger.Error("Invalid Inputs", zap.Error(err))
+		err = model.ErrBadRequest.Wrap(err,"Invalid User Inputs")
 		model.Error_type = model.BAD_REQUEST
 		return err
 	}
@@ -52,7 +51,7 @@ func (v ValidateLayer) ValidateForLogin(u model.User) error {
 func VerifyPassword(value interface {}) error{
 	s,ok := value.(string)
 	if !ok{
-		return errorx.Decorate(errorx.IllegalFormat.New("Invalid password format"), "Password must be string")
+		model.ErrBadRequest.New("Password must be string")
 	}
 	var hasNumber, hasUpperCase, hasLowercase, hasSpecial bool
 	for _, ch := range s {
@@ -64,7 +63,7 @@ func VerifyPassword(value interface {}) error{
 		case unicode.IsLower(ch):
 			hasLowercase = true
 		case ch == '#' || ch == '|':
-			return errorx.Decorate(errorx.IllegalFormat.New("Invalid password format"), "Password not supported shouldn't include # or |")
+			return model.ErrBadRequest.New("Password not supported shouldn't include # or |")
 		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
 			hasSpecial = true
 		}
@@ -72,7 +71,7 @@ func VerifyPassword(value interface {}) error{
 	if !(hasNumber && hasUpperCase && hasLowercase && hasSpecial){
 		util.Logger.Error("Invalid password format")
 		model.Error_type = model.BAD_REQUEST
-		return errorx.Decorate(errorx.IllegalFormat.New("Invalid password format"), "Password not supported must contain capital letters and special characters")
+		return model.ErrBadRequest.New("Password not supported must contain capital letters and special characters")
 	}
 	return nil
 }

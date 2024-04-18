@@ -6,8 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joomcode/errorx"
-
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/service"
 	"github.com/yobadagne/user_registration/util"
@@ -33,13 +31,12 @@ func (h HandlerLayer) Register(c *gin.Context) {
 
 	var usertoregister model.User
 	if err := c.BindJSON(&usertoregister); err != nil {
-		err = errorx.Decorate(err, "Error binding user input for registration")
 		util.Logger.Error("Error binding user input for registration", zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error binding user input for registration")
 		c.Error(err)
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
-	//ctx := c.Request.Context()
 	err := h.servicelayer.Register(usertoregister)
 
 	if err != nil {
@@ -54,10 +51,10 @@ func (h HandlerLayer) Login(c *gin.Context) {
 	var usertolog model.User
 	//bind user info
 	if err := c.BindJSON(&usertolog); err != nil {
-		err = errorx.Decorate(err, "Error binding user input for login")
 		util.Logger.Error("Error binding user input for login", zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error binding user input for login")
 		c.Error(err)
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 	access_token,refresh_token,err := h.servicelayer.Login(usertolog)

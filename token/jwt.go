@@ -4,7 +4,6 @@ import (
 	"strings"
 	"time"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"
@@ -26,8 +25,8 @@ func (t TokenLayer) CreateToken(username string, duration time.Duration, key str
 	})
 	token, err := jwtToken.SignedString([]byte(key))
 	if err!= nil{
-		err = errorx.Decorate(err, "Token creation error")
 		util.Logger.Error("Token creation error", zap.Error(err))
+		err = model.ErrInternalServerErr.New("can not create token ")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
 	}
@@ -37,17 +36,17 @@ func (t TokenLayer) CreateToken(username string, duration time.Duration, key str
 func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims, string, error) {
 	authorization := authorizationHeader
 	if authorization == " " {
-		err := errorx.IllegalState.New("Invalid authorization header")
+		err := model.ErrBadRequest.New("Invalid authorization header")
 		util.Logger.Error("Invalid authorization header", zap.Error(err))
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		model.Error_type = model.BAD_REQUEST
 		return nil, " ", err
 	}
 
 	fields := strings.Split(authorization, " ")
 	if strings.ToLower(fields[0]) != "bearer" || len(fields) < 2 {
-		err := errorx.IllegalState.New("Invalid token type")
+		err := model.ErrBadRequest.New("Invalid token type")
 		util.Logger.Error("Invalid token type", zap.Error(err))
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		model.Error_type = model.BAD_REQUEST
 		return nil, " ", err
 	}
 	tokenstring := fields[1]
@@ -56,14 +55,14 @@ func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims
 		return []byte(key), nil
 	})
 	if err != nil {
-		err = errorx.Decorate(err,"Invalid token when parsing" )
 		util.Logger.Error("Invalid token when parsing", zap.Error(err))
+		err := model.ErrBadRequest.New("Invalid token when parsing" )
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return nil, " ", err
 	}
 	if !token.Valid {
-		err := errorx.IllegalState.New("Unauthorized")
-		util.Logger.Error("Invalid token when  validating")
+		err := model.ErrUnauthorized.NewType("").New("Invalid token when validating")
+		util.Logger.Error("Invalid token when  validating",  zap.Error(err))
 		model.Error_type = model.UNAUTHORIZED
 		return nil, " ", err
 	}
