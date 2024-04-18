@@ -13,5 +13,10 @@ SELECT password FROM users
 WHERE 
 username = $1;
 
+-- name: GetRegisteredUser :one
+SELECT username FROM users 
+WHERE username = $1;
+
+
 
 

@@ -49,3 +49,14 @@ func (q *Queries) GetPasswordForLogin(ctx context.Context, username string) (str
 	err := row.Scan(&password)
 	return password, err
 }
+
+const getRegisteredUser = `-- name: GetRegisteredUser :one
+SELECT username FROM users 
+WHERE username = $1
+`
+
+func (q *Queries) GetRegisteredUser(ctx context.Context, username string) (string, error) {
+	row := q.db.QueryRowContext(ctx, getRegisteredUser, username)
+	err := row.Scan(&username)
+	return username, err
+}

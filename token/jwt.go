@@ -3,9 +3,7 @@ package token
 import (
 	"strings"
 	"time"
-
 	"github.com/dgrijalva/jwt-go"
-	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
@@ -18,7 +16,7 @@ type TokenLayer struct {
 func NewTokenLayer() model.TokenLayer {
 	return &TokenLayer{}
 }
-func (t TokenLayer) CreateToken(c *gin.Context, username string, duration time.Duration, key string) (string, error) {
+func (t TokenLayer) CreateToken(username string, duration time.Duration, key string) (string, error) {
 	expiretime := time.Now().Add(duration)
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, model.Claims{
 		Username: username,
@@ -30,25 +28,27 @@ func (t TokenLayer) CreateToken(c *gin.Context, username string, duration time.D
 	if err!= nil{
 		err = errorx.Decorate(err, "Token creation error")
 		util.Logger.Error("Token creation error", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
 	}
 	return token, nil
 }
 
-func (t TokenLayer) ValidateToken(c *gin.Context, key string) (*model.Claims, string, error) {
-	authorization := c.GetHeader("Authorization")
+func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims, string, error) {
+	authorization := authorizationHeader
 	if authorization == " " {
-		util.Logger.Error("Invalid authorization header")
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return nil, " ", errorx.IllegalState.New("Invalid authorization header")
+		err := errorx.IllegalState.New("Invalid authorization header")
+		util.Logger.Error("Invalid authorization header", zap.Error(err))
+		model.Error_type = model.INTERNAL_SERVER_ERROR
+		return nil, " ", err
 	}
 
 	fields := strings.Split(authorization, " ")
 	if strings.ToLower(fields[0]) != "bearer" || len(fields) < 2 {
-		util.Logger.Error("Invalid token type")
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return nil, " ", errorx.IllegalState.New("Invalid token type")
+		err := errorx.IllegalState.New("Invalid token type")
+		util.Logger.Error("Invalid token type", zap.Error(err))
+		model.Error_type = model.INTERNAL_SERVER_ERROR
+		return nil, " ", err
 	}
 	tokenstring := fields[1]
 	Claims := &model.Claims{}
@@ -57,14 +57,15 @@ func (t TokenLayer) ValidateToken(c *gin.Context, key string) (*model.Claims, st
 	})
 	if err != nil {
 		err = errorx.Decorate(err,"Invalid token when parsing" )
-		util.Logger.Error("Invalid token", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
+		util.Logger.Error("Invalid token when parsing", zap.Error(err))
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return nil, " ", err
 	}
 	if !token.Valid {
+		err := errorx.IllegalState.New("Unauthorized")
 		util.Logger.Error("Invalid token when  validating")
-		c.Set(model.Error_type,model.UNAUTHORIZED)
-		return nil, " ", errorx.IllegalState.New("Invalid token ")
+		model.Error_type = model.UNAUTHORIZED
+		return nil, " ", err
 	}
 	return Claims, fields[1], nil
 }

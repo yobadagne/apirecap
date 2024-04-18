@@ -39,7 +39,8 @@ func (h HandlerLayer) Register(c *gin.Context) {
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return
 	}
-	err := h.servicelayer.Register(usertoregister, c)
+	//ctx := c.Request.Context()
+	err := h.servicelayer.Register(usertoregister)
 
 	if err != nil {
 		c.Error(err)
@@ -59,32 +60,11 @@ func (h HandlerLayer) Login(c *gin.Context) {
 		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
 		return
 	}
-	err := h.servicelayer.Login(usertolog, c)
+	access_token,refresh_token,err := h.servicelayer.Login(usertolog)
 	if err != nil {
 		c.Error(err)
 		return
 	}
-
-	// get the generated access and refresh token from context
-	value, exists := c.Get("access_token")
-	if !exists {
-		err := errorx.Decorate(errorx.InternalError.New("could not get access token from context "), "could not get access token from context ")
-		c.Error(err)
-		util.Logger.Error("could not get access token from context", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return
-	}
-	access_token := value
-
-	value, exists = c.Get("refresh_token")
-	if !exists {
-		err := errorx.Decorate(errorx.InternalError.New("could not get refresh token from context"), "could not get refresh token from context ")
-		c.Error(err)
-		util.Logger.Error("could not get refresh token from context", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return
-	}
-	refresh_token := value
 
 	c.JSON(http.StatusOK, gin.H{
 
@@ -95,31 +75,13 @@ func (h HandlerLayer) Login(c *gin.Context) {
 }
 
 func (h HandlerLayer) Refresh(c *gin.Context) {
-
-	if err := h.servicelayer.Refresh(c); err != nil {
+	authorization := c.GetHeader("Authorization")
+	access_token,refresh_token, err := h.servicelayer.Refresh(authorization); 
+	if err != nil {
 		c.Error(err)
 		return
 	}
-	// get the generated acces and refresh token from context
-	value, exists := c.Get("access_token")
-	if !exists {
-		err := errorx.Decorate(errorx.InternalError.New("could not get access token from context "), "could not get access token from context ")
-		c.Error(err)
-		util.Logger.Error("could not get access token from context", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return
-	}
-	access_token := value
-
-	value, exists = c.Get("refresh_token")
-	if !exists {
-		err := errorx.Decorate(errorx.InternalError.New("could not get refresh token from context"), "could not get refresh token from context ")
-		c.Error(err)
-		util.Logger.Error("could not get refresh token from context", zap.Error(err))
-		c.Set(model.Error_type,model.INTERNAL_SERVER_ERROR)
-		return
-	}
-	refresh_token := value
+	
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  access_token,
 		"refresh_token": refresh_token,

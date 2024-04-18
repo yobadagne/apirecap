@@ -38,12 +38,13 @@ type Claims struct {
 	jwt.StandardClaims
 }
 type DataLayer interface {
-	Register(User, *gin.Context) error
-	GetPasswordForLogin(User, *gin.Context) (string, error)
-	SaveNewRefreshToken(c *gin.Context, refreshtoken, username string) error
-	DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) error
-	GetRefreshToken(c *gin.Context, refreshtoken string) (string, error)
-	DeleteRefreshTokenForLoginIfExists(c *gin.Context, username string) error 
+	Register(User) error
+	GetPasswordForLogin(User) (string, error)
+	SaveNewRefreshToken(refreshtoken, username string) error
+	DeleteUsedRefreshToken(refreshtoken string) error
+	GetRefreshToken(refreshtoken string) (string, error)
+	DeleteRefreshTokenForLoginIfExists(username string) error 
+	GetRegisteredUser(username string) (string, error)
 }
 
 //port for handler
@@ -57,22 +58,20 @@ type HandlerLayer interface {
 //port for auth layer
 
 type AuthLayer interface {
-	GenerateHashPassword(c *gin.Context, password string) (string, error)
-	CompareHashPassword(c *gin.Context, password, hash string) error
-	EncryptToken(c *gin.Context, token string, iv []byte) (string, error)
-	DecryptToken(c *gin.Context, ciphertext string) (string, error)
+	GenerateHashPassword(password string) (string, error)
+	CompareHashPassword(password, hash string) error
+	EncryptToken(token string, iv []byte) (string, error)
+	DecryptToken(ciphertext string) (string, error)
 }
 
 // port for validating user input
 type ValidaterLayer interface {
-	ValidateForRegister(c *gin.Context, user User) error
-	ValidateForLogin(c *gin.Context, user User) error
-	ValidateEmail(c *gin.Context, email string) error
-	VerifyPassword(c *gin.Context, s string) error
+	ValidateForRegister(user User) error
+	ValidateForLogin(user User) error
 }
 
 // port for token
 type TokenLayer interface {
-	CreateToken(c *gin.Context, username string, duration time.Duration, key string) (string, error)
-	ValidateToken(c *gin.Context, key string) (*Claims, string, error)
+	CreateToken(username string, duration time.Duration, key string) (string, error)
+	ValidateToken(authorizationHeader,key string) (*Claims, string, error)
 }

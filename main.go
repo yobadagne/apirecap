@@ -1,12 +1,12 @@
 package main
 
 import (
-
 	"time"
 	"github.com/gin-gonic/gin"
-	"github.com/yobadagne/user_registration/middleware"
 	"github.com/yobadagne/user_registration/handler"
+	"github.com/yobadagne/user_registration/middleware"
 	"github.com/yobadagne/user_registration/util"
+
 )
 
 func main() {
@@ -24,6 +24,6 @@ func main() {
 		util.Logger.Error("Can not start server")
 		return
 	}
-	
 	util.Logger.Info("Server started at 8080")
+
 }
