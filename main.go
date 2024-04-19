@@ -1,23 +1,23 @@
 package main
 
 import (
-	
+	"database/sql"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	//db "github.com/yobadagne/user_registration/db/sqlc_generated"
+	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 	"github.com/yobadagne/user_registration/handler"
 	"github.com/yobadagne/user_registration/middleware"
-	//"github.com/yobadagne/user_registration/model"
+	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
-	//"go.uber.org/zap"
+	"go.uber.org/zap"
 )
 
 func main() {
 	util.InitializeLogger()
-	// if err:= OpenDB(); err != nil{
-	// 	return
-	// } 
+	if err := OpenDB(); err != nil {
+		return
+	}
 	handler := handler.NewHandlerLayer()
 	r := gin.Default()
 	r.Use(middleware.RequestID())
@@ -34,15 +34,15 @@ func main() {
 	util.Logger.Info("Server started at 8080")
 
 }
-// func OpenDB() error {
+func OpenDB() error {
 
-// 	DB, err := sql.Open("postgres", "postgresql://root:yobadagne2nd@localhost:5432/users_db?sslmode=disable")
-// 	if err != nil {
-// 		// change error into errorx format
-// 		util.Logger.Error("Can not open Database", zap.Error(err))
-// 		err = model.ErrInternalServerErr.New("Can not open Database")
-// 		return err
-// 	}
-//	model.Queries = db.New(DB)
-// 	return nil
-// }
+	DB, err := sql.Open("postgres", "postgresql://root:yobadagne2nd@localhost:5432/users_db?sslmode=disable")
+	if err != nil {
+		// change error into errorx format
+		util.Logger.Error("Can not open Database", zap.Error(err))
+		err = model.ErrInternalServerErr.New("Can not open Database")
+		return err
+	}
+	model.Queries = db.New(DB)
+	return nil
+}

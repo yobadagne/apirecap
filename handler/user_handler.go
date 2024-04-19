@@ -13,13 +13,14 @@ import (
 )
 
 // Adapter for the handler layer
-var NewServiceLayer = service.NewServiceLayer()
+
 
 type HandlerLayer struct {
 	servicelayer model.ServiceLayer
 }
 
 func NewHandlerLayer() model.HandlerLayer {
+	NewServiceLayer := service.NewServiceLayer()
 	return &HandlerLayer{
 		servicelayer: NewServiceLayer,
 	}

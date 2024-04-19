@@ -13,7 +13,7 @@ import (
 )
 var UserID int
 var RequestID uuid.UUID
-//var Queries *db.Queries
+var Queries *db.Queries
 var IV = make([]byte, aes.BlockSize)
 
 // TODO here try to handle error

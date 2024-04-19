@@ -12,10 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var NewAuthLayer = auth.NewAuthLayer()
-var NewDataLayer = data.NewDataLayer(NewAuthLayer)
-var NewValLayer = val.NewValidateLayer()
-var NewTokenLayer = token.NewTokenLayer()
+
 
 type ServiceLayer struct {
 	datalayer     model.DataLayer
@@ -25,6 +22,10 @@ type ServiceLayer struct {
 }
 
 func NewServiceLayer() model.ServiceLayer {
+	 NewAuthLayer := auth.NewAuthLayer()
+	 NewDataLayer := data.NewDataLayer(NewAuthLayer)
+	 NewValLayer := val.NewValidateLayer()
+	 NewTokenLayer := token.NewTokenLayer()
 	return &ServiceLayer{
 		datalayer:     NewDataLayer,
 		authlayer:     NewAuthLayer,

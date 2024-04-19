@@ -1,4 +1,5 @@
 package data
+
 import (
 	"context"
 	"database/sql"
@@ -10,22 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-
-var Queries *db.Queries
 var ctx = context.Background()
-
-func OpenDB() (*db.Queries, error) {
-
-	DB, err := sql.Open("postgres", "postgresql://root:yobadagne2nd@localhost:5432/users_db?sslmode=disable")
-	if err != nil {
-		// change error into errorx format
-		util.Logger.Error("Can not open Database,error while excuting data.OpenDB", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Can not open Database")
-		return nil, err
-	}
-	Queries := db.New(DB)
-	return Queries, nil
-}
 // adapters to implement the datalayer port
 type Datalayer struct {
 	q    *db.Queries
@@ -33,11 +19,8 @@ type Datalayer struct {
 }
  
 func NewDataLayer(auth model.AuthLayer) model.DataLayer {
-	q,_ := OpenDB()
 	return &Datalayer{
-		//q: model.Queries,
-		//q: Queries,
-		q:q,
+		q: model.Queries,
 		auth: auth,
 	}
 }
