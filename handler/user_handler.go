@@ -33,9 +33,11 @@ func (h *HandlerLayer) Register(c *gin.Context) {
 	var usertoregister model.User
 	if err := c.BindJSON(&usertoregister); err != nil {
 		util.Logger.Error("Error binding user input for registration", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Error binding user input for registration")
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error binding user input for registration",
+		}
 		c.Error(err)
-		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 	err := h.servicelayer.Register(usertoregister)
@@ -53,9 +55,11 @@ func (h *HandlerLayer) Login(c *gin.Context) {
 	//bind user info
 	if err := c.BindJSON(&usertolog); err != nil {
 		util.Logger.Error("Error binding user input for login", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Error binding user input for login")
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error binding user input for login",
+		}
 		c.Error(err)
-		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 	access_token,refresh_token,err := h.servicelayer.Login(usertolog)

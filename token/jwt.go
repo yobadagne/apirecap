@@ -1,8 +1,10 @@
 package token
 
 import (
+	"net/http"
 	"strings"
 	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
@@ -27,8 +29,10 @@ func (t *TokenLayer) CreateToken(username string,userID int, duration time.Durat
 	token, err := jwtToken.SignedString([]byte(key))
 	if err!= nil{
 		util.Logger.Error("Token creation error,error while excuting token.CreateToken()", zap.Error(err))
-		err = model.ErrInternalServerErr.New("can not create token ")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "can not create token",
+		}
 		return "", err
 	}
 	return token, nil
@@ -37,17 +41,23 @@ func (t *TokenLayer) CreateToken(username string,userID int, duration time.Durat
 func (t *TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims, string, error) {
 	authorization := authorizationHeader
 	if authorization == " " {
-		err := model.ErrBadRequest.New("Invalid authorization header")
+		err := model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid authorization header",
+		}
+		
 		util.Logger.Error("Invalid authorization header,error while excuting token.ValidateToken()", zap.Error(err))
-		model.Error_type = model.BAD_REQUEST
+		
 		return nil, " ", err
 	}
 
 	fields := strings.Split(authorization, " ")
 	if strings.ToLower(fields[0]) != "bearer" || len(fields) < 2 {
-		err := model.ErrBadRequest.New("Invalid token type")
-		util.Logger.Error("Invalid token type,error while excuting token.ValidateToken()", zap.Error(err))
-		model.Error_type = model.BAD_REQUEST
+		err := model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid token type",
+		}
+		util.Logger.Error("Invalid token type,error while excuting token.ValidateToken()", zap.Error(err))	
 		return nil, " ", err
 	}
 	tokenstring := fields[1]
@@ -57,14 +67,20 @@ func (t *TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claim
 	})
 	if err != nil {
 		util.Logger.Error("Invalid token when parsing, error while excuting token.ValidateToken()", zap.Error(err))
-		err := model.ErrBadRequest.New("Invalid token when parsing" )
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err := model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Invalid token when parsing",
+		}
 		return nil, " ", err
 	}
 	if !token.Valid {
-		err := model.ErrUnauthorized.NewType("").New("Invalid token when validating")
+		err := model.MyError{
+			Code:    http.StatusUnauthorized,
+			Message: "Invalid token when validating",
+		}
+		
 		util.Logger.Error("Invalid token when validating,error while excuting token.ValidateToken()",  zap.Error(err))
-		model.Error_type = model.UNAUTHORIZED
+		
 		return nil, " ", err
 	}
 	return Claims, fields[1], nil

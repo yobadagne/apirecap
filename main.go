@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -15,9 +16,11 @@ import (
 
 func main() {
 	util.InitializeLogger()
-	if err := OpenDB(); err != nil {
+	err := OpenDB()
+	if err != nil {
 		return
 	}
+	fmt.Println(err)
 	handler := handler.NewHandlerLayer()
 	r := gin.Default()
 	r.Use(middleware.RequestID())
@@ -26,7 +29,7 @@ func main() {
 	r.POST("/register", handler.Register)
 	r.POST("/login", handler.Login)
 	r.POST("/refresh", handler.Refresh)
-	err := r.Run(":8080")
+	err = r.Run(":8080")
 	if err != nil {
 		util.Logger.Error("Can not start server")
 		return

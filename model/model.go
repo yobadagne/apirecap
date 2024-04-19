@@ -2,12 +2,13 @@ package model
 
 import (
 	"crypto/aes"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/joomcode/errorx"
 	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 )
@@ -15,7 +16,14 @@ var UserID int
 var RequestID uuid.UUID
 var Queries *db.Queries
 var IV = make([]byte, aes.BlockSize)
-
+type MyError struct{
+	Code int
+	Message string	
+}
+// MyError implement the error interface
+func(m MyError) Error() string{
+	return fmt.Sprintf("Error: %v,%v", m.Code,m.Message)
+}
 // TODO here try to handle error
 var Encriptionkey = []byte("AES128Key-16Char")
 var Error_type string = "error_type"

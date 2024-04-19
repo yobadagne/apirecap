@@ -1,6 +1,8 @@
 package util
 
 import (
+	"net/http"
+
 	"github.com/spf13/viper"
 	"github.com/yobadagne/user_registration/model"
 	"go.uber.org/zap"
@@ -21,16 +23,20 @@ func LoadConfig(path string) ( config Config, err error) {
 	err = viper.ReadInConfig()
 	if err != nil {
 		Logger.Error("Error in viper config,error while excuting util.LoadConfig()", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Error in viper config")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error in viper config",
+		}
 		return
 	}
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		Logger.Error("Error in viper unmarshal, error while excuting util.LoadConfig()",zap.Error(err))
-		err = model.ErrInternalServerErr.New("Error in viper unmarshal")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Error in viper unmarshal",
+		}
 		return
 	}
 	return

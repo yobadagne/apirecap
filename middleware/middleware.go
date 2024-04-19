@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/joomcode/errorx"
+	//"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 )
 
@@ -43,9 +43,17 @@ func ErrorHandler() gin.HandlerFunc {
 		c.Next()
 		// use map to bind error code
 		if len(c.Errors) > 0 {
-			err := c.Errors.Last().Unwrap() // get the original error from gin error
-			errx := errorx.Cast(err) // cast to errorx to use the Message method so that we can display the message to user on the next line
-			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err": errx.Message()})
+			//err := c.Errors.Last().Unwrap() // get the original error from gin error
+			//errx := errorx.Cast(err) // cast to errorx to use the Message method so that we can display the message to user on the next line
+			if err,ok := c.Errors.Last().Err.(model.MyError); ok {
+				code := err.Code
+				message:= err.Message
+				c.AbortWithStatusJSON(code, gin.H{"err": message})
+			}else {
+                // Handle other types of errors
+                c.JSON(500, gin.H{"error": "Internal server error"})
+            }
+			
 
 		}
 	}

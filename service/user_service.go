@@ -1,6 +1,7 @@
 package service
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/yobadagne/user_registration/auth"
@@ -12,8 +13,6 @@ import (
 	"go.uber.org/zap"
 )
 
-
-
 type ServiceLayer struct {
 	datalayer     model.DataLayer
 	authlayer     model.AuthLayer
@@ -22,10 +21,10 @@ type ServiceLayer struct {
 }
 
 func NewServiceLayer() model.ServiceLayer {
-	 NewAuthLayer := auth.NewAuthLayer()
-	 NewDataLayer := data.NewDataLayer(NewAuthLayer)
-	 NewValLayer := val.NewValidateLayer()
-	 NewTokenLayer := token.NewTokenLayer()
+	NewAuthLayer := auth.NewAuthLayer()
+	NewDataLayer := data.NewDataLayer(NewAuthLayer)
+	NewValLayer := val.NewValidateLayer()
+	NewTokenLayer := token.NewTokenLayer()
 	return &ServiceLayer{
 		datalayer:     NewDataLayer,
 		authlayer:     NewAuthLayer,
@@ -83,8 +82,10 @@ func (s *ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims,
 	}
 	if refresh_token != refresh_tokenfromDB {
 		util.Logger.Error("refresh token doesnot match, error while excuting service.ValidateToken()", zap.Error(err), zap.Int("UserID", model.UserID))
-		err = model.ErrUnauthorized.NewType("").New("refresh token doesnot match, you can not use one refresh token more than once, please generate a new one")
-		model.Error_type = model.UNAUTHORIZED
+		err = model.MyError{
+			Code:    http.StatusUnauthorized,
+			Message: "refresh token doesnot match, you can not use one refresh token more than once, please generate a new one",
+		}
 		return nil, err
 	}
 

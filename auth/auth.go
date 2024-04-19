@@ -4,6 +4,8 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"net/http"
+
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"
@@ -28,8 +30,10 @@ func (a *AuthLayer) GenerateHashPassword(password string) (string, error) {
 	if err != nil {		
 		util.Logger.Error("Can not hash password using bcrypt, error while excuting auth.GenerateHashPassword()", zap.Error(err))
 		// change error into errorx format
-		err = model.ErrInternalServerErr.New("Can not hash password")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code: http.StatusInternalServerError,
+			Message: "Can not hash password",
+		}
 		return "", err
 	}
 
@@ -42,8 +46,10 @@ func (a *AuthLayer) CompareHashPassword(password, hash string) error {
 	if err != nil {
 		// change error into errorx format
 		util.Logger.Error("password does not match while comparing using bcrypt.CompareHashPassword method, error while excuting auth.CompareHashPassword()",zap.Error(err))
-		err = model.ErrBadRequest.New("Password not correct")
-		model.Error_type = model.UNAUTHORIZED
+		err = model.MyError{
+			Code: http.StatusUnauthorized,
+			Message: "Password not correct",
+		}
 		return err
 	}
 	return nil
@@ -55,8 +61,10 @@ func (a *AuthLayer) EncryptToken(token string , iv []byte) (string, error) {
 	if err != nil {
 		// change error into errorx format
 		util.Logger.Error("Can not create encryption block using AES encryption, error while excuting auth.EncryptToken()", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Can not create encryption block")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code: http.StatusInternalServerError,
+			Message: "Can not create encryption block",
+		}
 		return " ", err
 	}
 	padLength:= aes.BlockSize - len(token)%aes.BlockSize
@@ -76,15 +84,19 @@ func (a *AuthLayer) DecryptToken(encryptedToken string) (string, error) {
 	if err != nil {
 		// change error into errorx format
 		util.Logger.Error("Can not create decryption block using AES decryption,error while excuting auth.DecryptToken()", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Can not create decryption block using AES decryption")
-		model.Error_type = model.INTERNAL_SERVER_ERROR
+		err = model.MyError{
+			Code: http.StatusInternalServerError,
+			Message: "Can not create decryption block using AES decryption",
+		}
 		return "", err
 	}
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedToken) 
 	if err != nil {
 		util.Logger.Error("Error while decrypting token using AES,error while excuting auth.DecryptToken()", zap.Error(err))
-		err = model.ErrBadRequest.New("Error while decrypting")
-		model.Error_type = model.BAD_REQUEST
+		err = model.MyError{
+			Code: http.StatusInternalServerError,
+			Message: "Error while decrypting",
+		}
 		return "", err
 	}
 	iv := ciphertext[:aes.BlockSize]

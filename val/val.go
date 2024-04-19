@@ -1,6 +1,7 @@
 package val
 
 import (
+	"net/http"
 	"regexp"
 	"unicode"
 
@@ -25,8 +26,10 @@ func (v *ValidateLayer) ValidateForRegister(u model.User) error {
 
 	if err != nil {
 		util.Logger.Error("Invalid User Inputs, error while excuting val.ValidateForRegister()", zap.Error(err))
-		err = model.ErrBadRequest.Wrap(err,err.Error())
-		model.Error_type = model.BAD_REQUEST
+		err = model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
 		return err
 	}
 	return nil
@@ -40,8 +43,10 @@ func (v *ValidateLayer) ValidateForLogin(u model.User) error {
 
 	if err != nil {
 		util.Logger.Error("Invalid Inputs, error while excuting val.ValidateForLogin()", zap.Error(err))
-		err = model.ErrBadRequest.Wrap(err,err.Error())
-		model.Error_type = model.BAD_REQUEST
+		err = model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: err.Error(),
+		}
 		return err
 	}
 	return nil
@@ -70,8 +75,11 @@ func VerifyPassword(value interface {}) error{
 	}
 	if !(hasNumber && hasUpperCase && hasLowercase && hasSpecial){
 		util.Logger.Error("Invalid password format, error while excuting val.VerifyPassword")
-		model.Error_type = model.BAD_REQUEST
-		return model.ErrBadRequest.New("Password not supported must contain capital letters and special characters")
+		err := model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: "Password not supported must contain capital letters and special characters",
+		}
+		return err	
 	}
 	return nil
 }
