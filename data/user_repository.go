@@ -116,17 +116,17 @@ func (d *Datalayer) SaveNewRefreshToken(refreshtoken, username string) error {
 		// check for constarint violation
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" { // constraint violation error in postgres
-				util.Logger.Error("There is a refresh token that is already saved with this username ", zap.Error(err))
+				util.Logger.Error("There is a refresh token that is already saved with this username ", zap.Error(err),zap.Int("UserID", model.UserID))
 				err = model.ErrBadRequest.New("Please use your refresh token to get a new refresh token")
 				model.Error_type = model.BAD_REQUEST
 				return err
 			}
-			util.Logger.Error(pqErr.Message, zap.Error(err))
+			util.Logger.Error(pqErr.Message, zap.Error(err),zap.Int("UserID", model.UserID))
 			err = model.ErrInternalServerErr.New(pqErr.Message)
 			model.Error_type = model.INTERNAL_SERVER_ERROR
 			return err
 		}
-		util.Logger.Error("Can not save refresh token", zap.Error(err))
+		util.Logger.Error("Can not save refresh token", zap.Error(err),zap.Int("UserID", model.UserID))
 		err = model.ErrInternalServerErr.New("Error while processing your refresh token")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return err
@@ -136,7 +136,7 @@ func (d *Datalayer) SaveNewRefreshToken(refreshtoken, username string) error {
 func (d *Datalayer) DeleteUsedRefreshToken(username string) error {
 	err := d.q.DeleteUsedRefreshToken(ctx, username)
 	if err != nil {
-		util.Logger.Error("Can not delete the used refresh token", zap.Error(err))
+		util.Logger.Error("Can not delete the used refresh token", zap.Error(err),zap.Int("UserID", model.UserID))
 		err = model.ErrInternalServerErr.New("Error while processing your refresh token")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return err
@@ -147,7 +147,7 @@ func (d *Datalayer) GetRefreshToken(username string) (string, error) {
 	refresh_token, err := d.q.GetRefreshToken(ctx, username)
 	if err != nil {
 		util.Logger.Error("Can not fetch refresh token for comparison", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Error while processing your refresh token")
+		err = model.ErrInternalServerErr.New("Error while processing your refresh token can not use one refresh token more than once, please generate a new one")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
 	}

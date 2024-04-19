@@ -12,19 +12,19 @@ import (
 
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requestID := uuid.New().String()
-		c.Set("RequestID", requestID)
-		c.Writer.Header().Set("X-Request-ID", requestID)
+		model.RequestID = uuid.New()
+		//c.Set("RequestID", requestID)
+		c.Writer.Header().Set("X-Request-ID", model.RequestID.String())
 		c.Next()
 	}
 }
-func UserID() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID := uuid.New().String()
-		c.Set("UserID", userID)
-		c.Next()
-	}
-}
+// func UserID() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		userID := model.UserID
+// 		//c.Set("UserID", userID)
+// 		c.Next()
+// 	}
+// }
 
 // time out middleware
 func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {

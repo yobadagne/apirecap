@@ -17,7 +17,7 @@ func main() {
 	r.Use(middleware.ErrorHandler())
 	r.Use(middleware.TimeoutMiddleware(5 * time.Second))
 	r.POST("/register", handler.Register)
-	r.POST("/login", middleware.UserID(), handler.Login)
+	r.POST("/login", handler.Login)
 	r.POST("/refresh", handler.Refresh)
 	err := r.Run(":8080")
 	if err != nil {
