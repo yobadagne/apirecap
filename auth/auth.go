@@ -23,10 +23,10 @@ func PKCS7Unpad(data []byte) []byte{
 	unpadding := int(data[length-1]) 
 	return  data[:(length -unpadding)]
 }
-func (a AuthLayer) GenerateHashPassword(password string) (string, error) {
+func (a *AuthLayer) GenerateHashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {		
-		util.Logger.Error("Can not hash password using bcrypt", zap.Error(err))
+		util.Logger.Error("Can not hash password using bcrypt, error while excuting auth.GenerateHashPassword()", zap.Error(err))
 		// change error into errorx format
 		err = model.ErrInternalServerErr.New("Can not hash password")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
@@ -37,11 +37,11 @@ func (a AuthLayer) GenerateHashPassword(password string) (string, error) {
 }
 
 // compare for login
-func (a AuthLayer) CompareHashPassword(password, hash string) error {
+func (a *AuthLayer) CompareHashPassword(password, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
 		// change error into errorx format
-		util.Logger.Error("password does not match",zap.Error(err))
+		util.Logger.Error("password does not match while comparing using bcrypt.CompareHashPassword method, error while excuting auth.CompareHashPassword()",zap.Error(err))
 		err = model.ErrBadRequest.New("Password not correct")
 		model.Error_type = model.UNAUTHORIZED
 		return err
@@ -50,11 +50,11 @@ func (a AuthLayer) CompareHashPassword(password, hash string) error {
 }
 
 // encryptToken encrypts a refresh token using AES encryption
-func (a AuthLayer) EncryptToken(token string , iv []byte) (string, error) {
+func (a *AuthLayer) EncryptToken(token string , iv []byte) (string, error) {
 	block, err := aes.NewCipher(model.Encriptionkey)
 	if err != nil {
 		// change error into errorx format
-		util.Logger.Error("Can not create encription block using AES encryption", zap.Error(err))
+		util.Logger.Error("Can not create encryption block using AES encryption, error while excuting auth.EncryptToken()", zap.Error(err))
 		err = model.ErrInternalServerErr.New("Can not create encryption block")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return " ", err
@@ -71,18 +71,18 @@ func (a AuthLayer) EncryptToken(token string , iv []byte) (string, error) {
 }
 
 // decryptToken decrypts an encrypted refresh token using AES decryption
-func (a AuthLayer) DecryptToken(encryptedToken string) (string, error) {
+func (a *AuthLayer) DecryptToken(encryptedToken string) (string, error) {
 	block, err := aes.NewCipher(model.Encriptionkey)
 	if err != nil {
 		// change error into errorx format
-		util.Logger.Error("Can not create decryption block using AES decryption", zap.Error(err))
+		util.Logger.Error("Can not create decryption block using AES decryption,error while excuting auth.DecryptToken()", zap.Error(err))
 		err = model.ErrInternalServerErr.New("Can not create decryption block using AES decryption")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
 	}
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedToken) 
 	if err != nil {
-		util.Logger.Error("Error while decrypting", zap.Error(err))
+		util.Logger.Error("Error while decrypting token using AES,error while excuting auth.DecryptToken()", zap.Error(err))
 		err = model.ErrBadRequest.New("Error while decrypting")
 		model.Error_type = model.BAD_REQUEST
 		return "", err

@@ -13,6 +13,7 @@ import (
 )
 var UserID int
 var RequestID uuid.UUID
+//var Queries *db.Queries
 var IV = make([]byte, aes.BlockSize)
 
 // TODO here try to handle error
@@ -85,4 +86,13 @@ type ValidaterLayer interface {
 type TokenLayer interface {
 	CreateToken(username string,userID int, duration time.Duration, key string) (string, error)
 	ValidateToken(authorizationHeader, key string) (*Claims, string, error)
+}
+
+type ServiceLayer interface{
+	GernerateAccessAndRefreshToken(username string, userID int) (access_token, refresh_token string, err error)
+	ValidateToken(authorizationHeader string) (*Claims, error)
+	Register(usertoregister User) error
+	Login(usertolog User) (string, string, error)
+	Refresh(authorizationHeader string) (string, string, error)
+	GetRegisteredUser(username string) (string, error)
 }

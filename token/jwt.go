@@ -15,7 +15,7 @@ type TokenLayer struct {
 func NewTokenLayer() model.TokenLayer {
 	return &TokenLayer{}
 }
-func (t TokenLayer) CreateToken(username string,userID int, duration time.Duration, key string) (string, error) {
+func (t *TokenLayer) CreateToken(username string,userID int, duration time.Duration, key string) (string, error) {
 	expiretime := time.Now().Add(duration)
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, model.Claims{
 		Username: username,
@@ -26,7 +26,7 @@ func (t TokenLayer) CreateToken(username string,userID int, duration time.Durati
 	})
 	token, err := jwtToken.SignedString([]byte(key))
 	if err!= nil{
-		util.Logger.Error("Token creation error", zap.Error(err))
+		util.Logger.Error("Token creation error,error while excuting token.CreateToken()", zap.Error(err))
 		err = model.ErrInternalServerErr.New("can not create token ")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return "", err
@@ -34,11 +34,11 @@ func (t TokenLayer) CreateToken(username string,userID int, duration time.Durati
 	return token, nil
 }
 
-func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims, string, error) {
+func (t *TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims, string, error) {
 	authorization := authorizationHeader
 	if authorization == " " {
 		err := model.ErrBadRequest.New("Invalid authorization header")
-		util.Logger.Error("Invalid authorization header", zap.Error(err))
+		util.Logger.Error("Invalid authorization header,error while excuting token.ValidateToken()", zap.Error(err))
 		model.Error_type = model.BAD_REQUEST
 		return nil, " ", err
 	}
@@ -46,7 +46,7 @@ func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims
 	fields := strings.Split(authorization, " ")
 	if strings.ToLower(fields[0]) != "bearer" || len(fields) < 2 {
 		err := model.ErrBadRequest.New("Invalid token type")
-		util.Logger.Error("Invalid token type", zap.Error(err))
+		util.Logger.Error("Invalid token type,error while excuting token.ValidateToken()", zap.Error(err))
 		model.Error_type = model.BAD_REQUEST
 		return nil, " ", err
 	}
@@ -56,14 +56,14 @@ func (t TokenLayer) ValidateToken(authorizationHeader,key string) (*model.Claims
 		return []byte(key), nil
 	})
 	if err != nil {
-		util.Logger.Error("Invalid token when parsing", zap.Error(err))
+		util.Logger.Error("Invalid token when parsing, error while excuting token.ValidateToken()", zap.Error(err))
 		err := model.ErrBadRequest.New("Invalid token when parsing" )
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return nil, " ", err
 	}
 	if !token.Valid {
 		err := model.ErrUnauthorized.NewType("").New("Invalid token when validating")
-		util.Logger.Error("Invalid token when validating",  zap.Error(err))
+		util.Logger.Error("Invalid token when validating,error while excuting token.ValidateToken()",  zap.Error(err))
 		model.Error_type = model.UNAUTHORIZED
 		return nil, " ", err
 	}

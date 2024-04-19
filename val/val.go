@@ -17,14 +17,14 @@ type ValidateLayer struct {
 func NewValidateLayer() model.ValidaterLayer {
 	return &ValidateLayer{}
 }
-func (v ValidateLayer) ValidateForRegister(u model.User) error {
+func (v *ValidateLayer) ValidateForRegister(u model.User) error {
 	err := validation.ValidateStruct(&u,
 		validation.Field(&u.Username, validation.Required, validation.Length(5, 50), validation.Match(regexp.MustCompile("^[a-zA-Z0-9]+$"))),
 		validation.Field(&u.Password, validation.Required, validation.Length(8, 50),validation.By(VerifyPassword)),
 		validation.Field(&u.Email, validation.Required, is.Email, validation.Length(5, 100)))
 
 	if err != nil {
-		util.Logger.Error("Invalid User Inputs", zap.Error(err))
+		util.Logger.Error("Invalid User Inputs, error while excuting val.ValidateForRegister()", zap.Error(err))
 		err = model.ErrBadRequest.Wrap(err,err.Error())
 		model.Error_type = model.BAD_REQUEST
 		return err
@@ -33,13 +33,13 @@ func (v ValidateLayer) ValidateForRegister(u model.User) error {
 }
 
 // validate for login
-func (v ValidateLayer) ValidateForLogin(u model.User) error {
+func (v *ValidateLayer) ValidateForLogin(u model.User) error {
 	err := validation.ValidateStruct(&u,
 		validation.Field(&u.Username, validation.Required, validation.Length(5, 50), validation.Match(regexp.MustCompile("^[a-zA-Z0-9]+$"))),
 		validation.Field(&u.Password, validation.Required, validation.Length(8, 50)))
 
 	if err != nil {
-		util.Logger.Error("Invalid Inputs", zap.Error(err))
+		util.Logger.Error("Invalid Inputs, error while excuting val.ValidateForLogin()", zap.Error(err))
 		err = model.ErrBadRequest.Wrap(err,err.Error())
 		model.Error_type = model.BAD_REQUEST
 		return err
@@ -69,7 +69,7 @@ func VerifyPassword(value interface {}) error{
 		}
 	}
 	if !(hasNumber && hasUpperCase && hasLowercase && hasSpecial){
-		util.Logger.Error("Invalid password format")
+		util.Logger.Error("Invalid password format, error while excuting val.VerifyPassword")
 		model.Error_type = model.BAD_REQUEST
 		return model.ErrBadRequest.New("Password not supported must contain capital letters and special characters")
 	}

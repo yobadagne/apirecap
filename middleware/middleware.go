@@ -43,8 +43,8 @@ func ErrorHandler() gin.HandlerFunc {
 		c.Next()
 		// use map to bind error code
 		if len(c.Errors) > 0 {
-			err := c.Errors.Last().Unwrap() // get the original error
-			errx := errorx.Cast(err) // cast to errorx to use the Message mthod so that we can diplay the message to user
+			err := c.Errors.Last().Unwrap() // get the original error from gin error
+			errx := errorx.Cast(err) // cast to errorx to use the Message method so that we can display the message to user on the next line
 			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err": errx.Message()})
 
 		}

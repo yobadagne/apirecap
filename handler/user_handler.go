@@ -16,18 +16,18 @@ import (
 var NewServiceLayer = service.NewServiceLayer()
 
 type HandlerLayer struct {
-	servicelayer service.ServiceLayer
+	servicelayer model.ServiceLayer
 }
 
 func NewHandlerLayer() model.HandlerLayer {
 	return &HandlerLayer{
-		servicelayer: *NewServiceLayer,
+		servicelayer: NewServiceLayer,
 	}
 }
 
 //create the datalayer adapter to use it here
 
-func (h HandlerLayer) Register(c *gin.Context) {
+func (h *HandlerLayer) Register(c *gin.Context) {
 
 	var usertoregister model.User
 	if err := c.BindJSON(&usertoregister); err != nil {
@@ -47,7 +47,7 @@ func (h HandlerLayer) Register(c *gin.Context) {
 	c.JSON(http.StatusOK, "new user registered")
 }
 
-func (h HandlerLayer) Login(c *gin.Context) {
+func (h *HandlerLayer) Login(c *gin.Context) {
 	var usertolog model.User
 	//bind user info
 	if err := c.BindJSON(&usertolog); err != nil {
@@ -71,7 +71,7 @@ func (h HandlerLayer) Login(c *gin.Context) {
 
 }
 
-func (h HandlerLayer) Refresh(c *gin.Context) {
+func (h *HandlerLayer) Refresh(c *gin.Context) {
 	authorization := c.GetHeader("Authorization")
 	access_token,refresh_token, err := h.servicelayer.Refresh(authorization); 
 	if err != nil {

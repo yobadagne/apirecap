@@ -20,7 +20,7 @@ func LoadConfig(path string) ( config Config, err error) {
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		Logger.Error("Error in viper config", zap.Error(err))
+		Logger.Error("Error in viper config,error while excuting util.LoadConfig()", zap.Error(err))
 		err = model.ErrInternalServerErr.New("Error in viper config")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
@@ -28,7 +28,7 @@ func LoadConfig(path string) ( config Config, err error) {
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		Logger.Error("Error in viper unmarshal",zap.Error(err))
+		Logger.Error("Error in viper unmarshal, error while excuting util.LoadConfig()",zap.Error(err))
 		err = model.ErrInternalServerErr.New("Error in viper unmarshal")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return

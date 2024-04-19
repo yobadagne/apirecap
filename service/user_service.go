@@ -24,7 +24,7 @@ type ServiceLayer struct {
 	tokenlayer    model.TokenLayer
 }
 
-func NewServiceLayer() *ServiceLayer {
+func NewServiceLayer() model.ServiceLayer {
 	return &ServiceLayer{
 		datalayer:     NewDataLayer,
 		authlayer:     NewAuthLayer,
@@ -34,7 +34,7 @@ func NewServiceLayer() *ServiceLayer {
 }
 
 // generate access and refresh tokens
-func (s ServiceLayer) GernerateAccessAndRefreshToken(username string, userID int) (access_token, refresh_token string, err error) {
+func (s *ServiceLayer) GernerateAccessAndRefreshToken(username string, userID int) (access_token, refresh_token string, err error) {
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		return "", "", err
@@ -52,7 +52,7 @@ func (s ServiceLayer) GernerateAccessAndRefreshToken(username string, userID int
 
 //valiadte token
 
-func (s ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, error) {
+func (s *ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, error) {
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		return nil, err
@@ -81,7 +81,7 @@ func (s ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, 
 		return nil, err
 	}
 	if refresh_token != refresh_tokenfromDB {
-		util.Logger.Error("refresh token doesnot match", zap.Error(err), zap.Int("UserID", model.UserID))
+		util.Logger.Error("refresh token doesnot match, error while excuting service.ValidateToken()", zap.Error(err), zap.Int("UserID", model.UserID))
 		err = model.ErrUnauthorized.NewType("").New("refresh token doesnot match, you can not use one refresh token more than once, please generate a new one")
 		model.Error_type = model.UNAUTHORIZED
 		return nil, err
@@ -90,7 +90,7 @@ func (s ServiceLayer) ValidateToken(authorizationHeader string) (*model.Claims, 
 	return claims, nil
 }
 
-func (s ServiceLayer) Register(usertoregister model.User) error {
+func (s *ServiceLayer) Register(usertoregister model.User) error {
 	// validate user
 	if err := s.validatelayer.ValidateForRegister(usertoregister); err != nil {
 		return err
@@ -112,7 +112,7 @@ func (s ServiceLayer) Register(usertoregister model.User) error {
 
 // for login
 
-func (s ServiceLayer) Login(usertolog model.User) (string, string, error) {
+func (s *ServiceLayer) Login(usertolog model.User) (string, string, error) {
 	// validate user
 	if err := s.validatelayer.ValidateForLogin(usertolog); err != nil {
 		return "", "", err
@@ -146,7 +146,7 @@ func (s ServiceLayer) Login(usertolog model.User) (string, string, error) {
 
 //for refresh
 
-func (s ServiceLayer) Refresh(authorizationHeader string) (string, string, error) {
+func (s *ServiceLayer) Refresh(authorizationHeader string) (string, string, error) {
 	claims, err := s.ValidateToken(authorizationHeader)
 	if err != nil {
 		return "", "", err
@@ -166,7 +166,7 @@ func (s ServiceLayer) Refresh(authorizationHeader string) (string, string, error
 	}
 	return access_token, refresh_token, nil
 }
-func (s ServiceLayer) GetRegisteredUser(username string) (string, error) {
+func (s *ServiceLayer) GetRegisteredUser(username string) (string, error) {
 	username, err := s.datalayer.GetRegisteredUser(username)
 	if err != nil {
 		return "", err
