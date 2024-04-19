@@ -3,13 +3,11 @@ package model
 import (
 	"crypto/aes"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/joomcode/errorx"
 	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 )
 var UserID int
@@ -26,26 +24,6 @@ func(m MyError) Error() string{
 }
 // TODO here try to handle error
 var Encriptionkey = []byte("AES128Key-16Char")
-var Error_type string = "error_type"
-var (
-	ErrNotFound          = errorx.DataUnavailable
-	ErrInternalServerErr = errorx.InternalError
-	ErrBadRequest        = errorx.IllegalArgument
-	ErrUnauthorized      = errorx.NewNamespace("unauthorized")
-)
-var (
-	BAD_REQUEST           = "bad request"
-	INTERNAL_SERVER_ERROR = "internal server error"
-	UNAUTHORIZED          = "unauthorized"
-	NOT_FOUND             = "not Found"
-)
-var HttpCodeGenerator = map[string]int{
-	BAD_REQUEST:           http.StatusBadRequest,
-	INTERNAL_SERVER_ERROR: http.StatusInternalServerError,
-	UNAUTHORIZED:          http.StatusUnauthorized,
-	NOT_FOUND:             http.StatusNotFound,
-}
-
 type User struct {
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`

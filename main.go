@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -43,7 +44,10 @@ func OpenDB() error {
 	if err != nil {
 		// change error into errorx format
 		util.Logger.Error("Can not open Database", zap.Error(err))
-		err = model.ErrInternalServerErr.New("Can not open Database")
+		err = model.MyError{
+			Code:    http.StatusInternalServerError,
+			Message: "Can not open Database",
+		}
 		return err
 	}
 	model.Queries = db.New(DB)

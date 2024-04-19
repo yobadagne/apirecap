@@ -56,7 +56,11 @@ func (v *ValidateLayer) ValidateForLogin(u model.User) error {
 func VerifyPassword(value interface {}) error{
 	s,ok := value.(string)
 	if !ok{
-		model.ErrBadRequest.New("Password must be string")
+		err := model.MyError{
+			Code:    http.StatusBadRequest,
+			Message: "Password must be string",
+		}
+		return err
 	}
 	var hasNumber, hasUpperCase, hasLowercase, hasSpecial bool
 	for _, ch := range s {
@@ -68,7 +72,11 @@ func VerifyPassword(value interface {}) error{
 		case unicode.IsLower(ch):
 			hasLowercase = true
 		case ch == '#' || ch == '|':
-			return model.ErrBadRequest.New("Password not supported shouldn't include # or |")
+			err := model.MyError{
+				Code:    http.StatusBadRequest,
+				Message: "Password not supported shouldn't include # or |",
+			}
+			return err
 		case unicode.IsPunct(ch) || unicode.IsSymbol(ch):
 			hasSpecial = true
 		}
