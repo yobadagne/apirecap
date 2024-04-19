@@ -45,6 +45,9 @@ func ErrorHandler() gin.HandlerFunc {
 		if len(c.Errors) > 0 {
 			err := c.Errors.Last().Unwrap() // get the original error from gin error
 			errx := errorx.Cast(err) // cast to errorx to use the Message method so that we can display the message to user on the next line
+			if errx == nil{
+				c.JSON(500, gin.H{"error": "Internal server error"})
+			}
 			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err": errx.Message()})
 
 		}
