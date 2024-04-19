@@ -35,16 +35,16 @@ func NewServiceLayer() *ServiceLayer {
 }
 
 // generate access and refresh tokens
-func (s ServiceLayer) GernerateAccessAndRefreshToken( username string) (access_token, refresh_token string, err error) {
+func (s ServiceLayer) GernerateAccessAndRefreshToken(username string,userID int) (access_token, refresh_token string, err error) {
 	config, err := util.LoadConfig(".")
 	if err != nil {
 		return "", "", err
 	}
-	access_token, err = s.tokenlayer.CreateToken(username, 15*time.Minute, config.Access_key)
+	access_token, err = s.tokenlayer.CreateToken(username, userID,15*time.Minute, config.Access_key)
 	if err != nil {
 		return "", "", err
 	}
-	refresh_token, err = s.tokenlayer.CreateToken(username, 30*24*time.Hour, config.Refersh_key)
+	refresh_token, err = s.tokenlayer.CreateToken(username, userID,30*24*time.Hour, config.Refersh_key)
 	if err != nil {
 		return "", "", err
 	}
@@ -120,13 +120,13 @@ func (s ServiceLayer) Login(usertolog model.User) (string,string,error) {
 	}
 
 	//get password from DB
-	passwordfromDB, err := s.datalayer.GetPasswordForLogin(usertolog)
+	UserFromDB, err := s.datalayer.GetUserForLogin(usertolog)
 	if err != nil {
 		return "","",err
 	}
 	// compare password
 
-	if err := s.authlayer.CompareHashPassword(usertolog.Password, passwordfromDB); err != nil {
+	if err := s.authlayer.CompareHashPassword(usertolog.Password, UserFromDB.Password); err != nil {
 		return "","",err
 	}
 	// delete its session , if it has 
@@ -134,7 +134,7 @@ func (s ServiceLayer) Login(usertolog model.User) (string,string,error) {
 		return "","",err
 	}
 	// generate access and referesh token
-	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(usertolog.Username)
+	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(UserFromDB.Username,int(UserFromDB.ID))
 	if err != nil {
 		return "","",err
 	}
@@ -157,7 +157,7 @@ func (s ServiceLayer) Refresh(authorizationHeader string) (string,string,error) 
 		return "","",err
 	}
 	// now generate new tokens
-	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(claims.Username)
+	access_token, refresh_token, err := s.GernerateAccessAndRefreshToken(claims.Username,claims.UserID)
 	if err != nil {
 		return "","",err
 	}

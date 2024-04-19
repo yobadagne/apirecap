@@ -15,10 +15,11 @@ type TokenLayer struct {
 func NewTokenLayer() model.TokenLayer {
 	return &TokenLayer{}
 }
-func (t TokenLayer) CreateToken(username string, duration time.Duration, key string) (string, error) {
+func (t TokenLayer) CreateToken(username string,userID int, duration time.Duration, key string) (string, error) {
 	expiretime := time.Now().Add(duration)
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, model.Claims{
 		Username: username,
+		UserID: userID,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiretime.Unix(),
 		},

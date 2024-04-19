@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/joomcode/errorx"
+	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 )
 
 var IV = make([]byte, aes.BlockSize)
@@ -34,7 +35,6 @@ var HttpCodeGenerator = map[string]int{
 	NOT_FOUND:             http.StatusNotFound,
 }
 
-type Mystring string
 type User struct {
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`
@@ -43,11 +43,12 @@ type User struct {
 
 type Claims struct {
 	Username string
+	UserID   int
 	jwt.StandardClaims
 }
 type DataLayer interface {
 	Register(User) error
-	GetPasswordForLogin(User) (string, error)
+	GetUserForLogin(usertolog User) (db.User, error)
 	SaveNewRefreshToken(refreshtoken, username string) error
 	DeleteUsedRefreshToken(refreshtoken string) error
 	GetRefreshToken(refreshtoken string) (string, error)
@@ -80,6 +81,6 @@ type ValidaterLayer interface {
 
 // port for token
 type TokenLayer interface {
-	CreateToken(username string, duration time.Duration, key string) (string, error)
+	CreateToken(username string,userID int, duration time.Duration, key string) (string, error)
 	ValidateToken(authorizationHeader, key string) (*Claims, string, error)
 }

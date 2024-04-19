@@ -8,8 +8,8 @@ INSERT INTO users (
 ) RETURNING *;
 
 
--- name: GetPasswordForLogin :one
-SELECT password FROM users 
+-- name: GetUserForLogin :one
+SELECT * FROM users 
 WHERE 
 username = $1;
 

@@ -37,19 +37,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const getPasswordForLogin = `-- name: GetPasswordForLogin :one
-SELECT password FROM users 
-WHERE 
-username = $1
-`
-
-func (q *Queries) GetPasswordForLogin(ctx context.Context, username string) (string, error) {
-	row := q.db.QueryRowContext(ctx, getPasswordForLogin, username)
-	var password string
-	err := row.Scan(&password)
-	return password, err
-}
-
 const getRegisteredUser = `-- name: GetRegisteredUser :one
 SELECT username FROM users 
 WHERE username = $1
@@ -59,4 +46,22 @@ func (q *Queries) GetRegisteredUser(ctx context.Context, username string) (strin
 	row := q.db.QueryRowContext(ctx, getRegisteredUser, username)
 	err := row.Scan(&username)
 	return username, err
+}
+
+const getUserForLogin = `-- name: GetUserForLogin :one
+SELECT id, username, password, email FROM users 
+WHERE 
+username = $1
+`
+
+func (q *Queries) GetUserForLogin(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserForLogin, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Email,
+	)
+	return i, err
 }

@@ -4,9 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
-	
-
-	//"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
 	"github.com/yobadagne/user_registration/util"
 	"go.uber.org/zap"

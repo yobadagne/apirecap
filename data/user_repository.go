@@ -83,21 +83,21 @@ func (d *Datalayer) Register(newuser model.User) error {
 	return nil
 }
 
-func (d *Datalayer) GetPasswordForLogin(usertolog model.User) (string, error) {
-	passwordfromDB, err := d.q.GetPasswordForLogin(ctx, usertolog.Username)
+func (d *Datalayer) GetUserForLogin(usertolog model.User) (db.User, error) {
+	 UserFromDB, err := d.q.GetUserForLogin(ctx, usertolog.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			util.Logger.Error("No user found", zap.Error(err))
 			err = model.ErrBadRequest.New("No user found please register")
 			model.Error_type = model.NOT_FOUND
-			return "", err
+			return db.User{}, err
 		}
 		util.Logger.Error("Error while reading user from DB", zap.Error(err))
 		err = model.ErrBadRequest.New("Can not read from DB")
 		model.Error_type = model.INTERNAL_SERVER_ERROR
-		return "", err
+		return db.User{}, err
 	}
-	return passwordfromDB, nil
+	return UserFromDB, nil
 }
 
 func (d *Datalayer) SaveNewRefreshToken(refreshtoken, username string) error {
