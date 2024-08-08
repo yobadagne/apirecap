@@ -1,15 +1,30 @@
 package model
 
 import (
+	"crypto/aes"
 	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/gin-gonic/gin"
-	
+	"github.com/joomcode/errorx"
+	db "github.com/yobadagne/user_registration/db/sqlc_generated"
 )
+var UserID int
+var RequestID uuid.UUID
+var Queries *db.Queries
+var IV = make([]byte, aes.BlockSize)
 
-var Error_type = "error_type"
+// TODO here try to handle error
+var Encriptionkey = []byte("AES128Key-16Char")
+var Error_type string = "error_type"
+var (
+	ErrNotFound          = errorx.DataUnavailable
+	ErrInternalServerErr = errorx.InternalError
+	ErrBadRequest        = errorx.IllegalArgument
+	ErrUnauthorized      = errorx.NewNamespace("unauthorized")
+)
 var (
 	BAD_REQUEST           = "bad request"
 	INTERNAL_SERVER_ERROR = "internal server error"
@@ -17,13 +32,12 @@ var (
 	NOT_FOUND             = "not Found"
 )
 var HttpCodeGenerator = map[string]int{
-	BAD_REQUEST: http.StatusBadRequest,
+	BAD_REQUEST:           http.StatusBadRequest,
 	INTERNAL_SERVER_ERROR: http.StatusInternalServerError,
-	UNAUTHORIZED: http.StatusUnauthorized,
-	NOT_FOUND: http.StatusNotFound,
+	UNAUTHORIZED:          http.StatusUnauthorized,
+	NOT_FOUND:             http.StatusNotFound,
 }
 
-type Mystring string
 type User struct {
 	Username string `json:"username,omitempty"`
 	Email    string `json:"email,omitempty"`
@@ -32,14 +46,17 @@ type User struct {
 
 type Claims struct {
 	Username string
+	UserID   int
 	jwt.StandardClaims
 }
 type DataLayer interface {
-	Register(User, *gin.Context) error
-	GetPasswordForLogin(User, *gin.Context) (string, error)
-	SaveNewRefreshToken(c *gin.Context, refreshtoken, username string) error
-	DeleteUsedRefreshToken(c *gin.Context, refreshtoken string) error
-	GetRefreshToken(c *gin.Context, refreshtoken string) (string, error)
+	Register(User) error
+	GetUserForLogin(usertolog User) (db.User, error)
+	SaveNewRefreshToken(refreshtoken, username string) error
+	DeleteUsedRefreshToken(refreshtoken string) error
+	GetRefreshToken(refreshtoken string) (string, error)
+	DeleteRefreshTokenForLoginIfExists(username string) error
+	GetRegisteredUser(username string) (string, error)
 }
 
 //port for handler
@@ -53,20 +70,29 @@ type HandlerLayer interface {
 //port for auth layer
 
 type AuthLayer interface {
-	GenerateHashPassword(c *gin.Context, password string) (string, error)
-	CompareHashPassword(c *gin.Context, password, hash string) error
+	GenerateHashPassword(password string) (string, error)
+	CompareHashPassword(password, hash string) error
+	EncryptToken(token string, iv []byte) (string, error)
+	DecryptToken(ciphertext string) (string, error)
 }
 
 // port for validating user input
 type ValidaterLayer interface {
-	ValidateForRegister(c *gin.Context, user User) error
-	ValidateForLogin(c *gin.Context,user User) error
-	ValidateEmail(c *gin.Context,email string) error
-	VerifyPassword(c *gin.Context,s string) error
+	ValidateForRegister(user User) error
+	ValidateForLogin(user User) error
 }
 
 // port for token
 type TokenLayer interface {
-	CreateToken(c *gin.Context,username string, duration time.Duration, key string) (string, error)
-	ValidateToken(c *gin.Context, key string) (*Claims, string, error)
+	CreateToken(username string,userID int, duration time.Duration, key string) (string, error)
+	ValidateToken(authorizationHeader, key string) (*Claims, string, error)
+}
+
+type ServiceLayer interface{
+	GernerateAccessAndRefreshToken(username string, userID int) (access_token, refresh_token string, err error)
+	ValidateToken(authorizationHeader string) (*Claims, error)
+	Register(usertoregister User) error
+	Login(usertolog User) (string, string, error)
+	Refresh(authorizationHeader string) (string, string, error)
+	GetRegisteredUser(username string) (string, error)
 }

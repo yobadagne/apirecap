@@ -6,24 +6,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/joomcode/errorx"
 	"github.com/yobadagne/user_registration/model"
-	//"github.com/joomcode/errorx"
 )
 
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		requestID := uuid.New().String()
-		c.Set("RequestID", requestID)
+		model.RequestID = uuid.New()
+		//c.Set("RequestID", requestID)
+		c.Writer.Header().Set("X-Request-ID", model.RequestID.String())
 		c.Next()
 	}
 }
-func UserID() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		userID := uuid.New().String()
-		c.Set("UserID", userID)
-		c.Next()
-	}
-}
+// func UserID() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		userID := model.UserID
+// 		//c.Set("UserID", userID)
+// 		c.Next()
+// 	}
+// }
 
 // time out middleware
 func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
@@ -37,17 +38,18 @@ func TimeoutMiddleware(timeout time.Duration) gin.HandlerFunc {
 }
 
 func ErrorHandler() gin.HandlerFunc {
-	return func(c *gin.Context){ 
-		
+	return func(c *gin.Context) {
+
 		c.Next()
-		// use map to bind error code 
+		// use map to bind error code
 		if len(c.Errors) > 0 {
-			error_type , ok:= c.Get(model.Error_type)
-			if !ok {
-				c.AbortWithStatusJSON(model.HttpCodeGenerator[model.INTERNAL_SERVER_ERROR], gin.H{"err":c.Errors.String()})
-			} else{
-			c.AbortWithStatusJSON(model.HttpCodeGenerator[error_type.(string)], gin.H{"err":c.Errors.String()})
+			err := c.Errors.Last().Unwrap() // get the original error from gin error
+			errx := errorx.Cast(err) // cast to errorx to use the Message method so that we can display the message to user on the next line
+			if errx == nil{
+				c.JSON(500, gin.H{"error": "Internal server error"})
 			}
+			c.AbortWithStatusJSON(model.HttpCodeGenerator[model.Error_type], gin.H{"err": errx.Message()})
+
 		}
 	}
 }

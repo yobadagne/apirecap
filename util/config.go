@@ -1,10 +1,9 @@
 package util
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/joomcode/errorx"
 	"github.com/spf13/viper"
 	"github.com/yobadagne/user_registration/model"
+	"go.uber.org/zap"
 )
 
 type Config struct {
@@ -12,7 +11,7 @@ type Config struct {
 	Refersh_key string `mapstructure:"REFRESH_KEY"`
 }
 
-func LoadConfig(c *gin.Context, path string) ( config Config, err error) {
+func LoadConfig(path string) ( config Config, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
@@ -21,17 +20,17 @@ func LoadConfig(c *gin.Context, path string) ( config Config, err error) {
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		err = errorx.Decorate(err, "Error in viper config")
-		Logger.Error("Error in viper config")
-		c.Set(model.Error_type, model.INTERNAL_SERVER_ERROR)
+		Logger.Error("Error in viper config,error while excuting util.LoadConfig()", zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error in viper config")
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		err = errorx.Decorate(err, "Error in viper unmarshal")
-		Logger.Error("Error in viper unmarshal")
-		c.Set(model.Error_type, model.INTERNAL_SERVER_ERROR)
+		Logger.Error("Error in viper unmarshal, error while excuting util.LoadConfig()",zap.Error(err))
+		err = model.ErrInternalServerErr.New("Error in viper unmarshal")
+		model.Error_type = model.INTERNAL_SERVER_ERROR
 		return
 	}
 	return
