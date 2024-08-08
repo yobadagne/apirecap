@@ -2,14 +2,25 @@ pipeline {
   agent any
   stages {
     stage('Build') {
-      steps {
-        echo 'Building the app'
-      }
-    }
+      parallel {
+        stage('Build') {
+          steps {
+            echo 'Building the app'
+          }
+        }
 
-    stage('Test') {
-      steps {
-        echo 'Testing the app'
+        stage('Test') {
+          steps {
+            echo 'Testing'
+          }
+        }
+
+        stage('TestLog') {
+          steps {
+            writeFile(file: 'Testlog.txt', text: 'A logger for test ')
+          }
+        }
+
       }
     }
 
