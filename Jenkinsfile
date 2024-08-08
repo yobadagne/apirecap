@@ -29,6 +29,9 @@ pipeline {
     }
 
     stage('Deploy ') {
+      when {
+        branch = 'main'
+      }
       parallel {
         stage('Deploy ') {
           steps {
