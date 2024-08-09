@@ -10,14 +10,12 @@ pipeline {
         }
 
         stage('Test') {
-          // agent {
-          //   docker {
-          //     image 'golang:1.20'
-          //   }
-         // } 
+          agent {
+            label 'jenkins-with-go'
+          }
           steps {
             echo 'Testing'
-             //sh 'go test ./...'
+             sh 'go test ./...'
           }
         }
         stage('TestLog') {
