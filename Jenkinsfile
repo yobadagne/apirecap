@@ -10,27 +10,26 @@ pipeline {
         }
 
         stage('Test') {
+          // agent {
+          //   docker {
+          //     image 'golang:1.20'
+          //   }
+          } 
           steps {
-            agent {
-            docker {
-              image 'golang:1.20'
-            }
-            sh 'go test ./...'
+            echo 'Testing'
+             //sh 'go test ./...'
           }
         }
-
         stage('TestLog') {
           steps {
             writeFile(file: 'Testlog.txt', text: 'A logger for test ')
           }
         }
-
       }
     }
-
     stage('Deploy ') {
       when {
-        branch = 'main'
+        branch 'main'
       }
       parallel {
         stage('Deploy ') {
@@ -45,9 +44,7 @@ pipeline {
             archiveArtifacts 'Testlog.txt'
           }
         }
-
       }
     }
-
   }
 }

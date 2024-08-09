@@ -1,0 +1,7 @@
+{
+    "jenkins.pipeline.linter.connector.url": " http://localhost:8080/pipeline-model-converter/validate",
+    "jenkins.pipeline.linter.connector.crumbUrl": "",
+    "jenkins.pipeline.linter.connector.user": "yobadagne",
+    "jenkins.pipeline.linter.connector.strictssl": true,
+    "jenkins.pipeline.linter.connector.pass": "getlost"
+}
