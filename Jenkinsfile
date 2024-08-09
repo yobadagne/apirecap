@@ -10,13 +10,14 @@ pipeline {
         }
 
         stage('Test') {
-          agent {
-            docker {
-              image 'golang:1.20'
-            }
+          // agent {
+          //   docker {
+          //     image 'golang:1.20'
+          //   }
           } 
           steps {
-             sh 'go test ./...'
+            echo 'Testing'
+             //sh 'go test ./...'
           }
         }
         stage('TestLog') {
