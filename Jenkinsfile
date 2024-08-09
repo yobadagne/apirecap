@@ -14,7 +14,7 @@ pipeline {
           //   docker {
           //     image 'golang:1.20'
           //   }
-          } 
+         // } 
           steps {
             echo 'Testing'
              //sh 'go test ./...'
