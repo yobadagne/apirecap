@@ -11,7 +11,7 @@ pipeline {
 
         stage('Test') {
           agent {
-            label 'docker_basics'
+            label 'jenkins_with_go'
           }
           steps {
             echo 'Testing'
