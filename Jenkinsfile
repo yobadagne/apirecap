@@ -10,9 +10,9 @@ pipeline {
         }
 
         stage('Test') {
-          // agent {
-          //   label 'jenkins-with-go'
-          // }
+          agent {
+            label 'jenkins-with-go'
+          }
           steps {
             echo 'Testing'
             sh 'docker run --rm jenkins-agent-with-go'
